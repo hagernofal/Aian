@@ -1,0 +1,189 @@
+Chating
+common chat mediums in companies
+
+slack
+microsoft teams
+discord
+google chat
+
+==========================
+api access
+
+slack, microsoft teams, discord have api access for reading/writing messages.
+teams via somethign called microsoft graph
+slack is one of the best developer apis >> good point
+discord is much more dev friendly but readign messages via bot 
+google chat mainley bots and integrations
+so up til now, slack, teams, discord seems a good fit.
+some drawbackes for teams>> reqire enterprise permission approval "killer for this chose"
+so now i have slck, and discord
+but discord is the least one of them that companies use.
+
+===========================
+choise " i personally chose slack"
+general docs: https://docs.slack.dev/
+
+we will mostly need these documentations.
+
+https://api.slack.com/authentication/oauth-v2
+https://api.slack.com/scopes
+https://api.slack.com/apis/connections/events-api
+https://docs.slack.dev/reference/methods/conversations.history
+https://docs.slack.dev/reference/methods/chat.postMessage
+https://docs.slack.dev/apis/web-api/rate-limits/
+
+
+===================================================================================================
+Meetings
+common meetings platrofms
+teams,
+slack,
+zoom,
+google meet,
+cisco webex,
+discord
+
+most comonly used are slack, teams, google meet, and zoom
+zoom supports oauth nativly.
+permessions depend on the zoom account access, free/pro/business zoom plan.
+my app will inherit these prevlages
+
+usefull docs we will need.
+
+OAuth Guide
+https://developers.zoom.us/docs/build-flow/basic-info/oauth-info/
+
+Meetings API
+https://developers.zoom.us/docs/api/meetings/
+
+REST API Reference
+https://developers.zoom.us/docs/api/
+
+Recordings API Reference
+https://developers.zoom.us/docs/api/rest/reference/zoom-api/methods/#operation/recordingGet
+
+Webhooks Documentation
+https://developers.zoom.us/docs/api/webhooks/
+
+OAuth Scopes
+https://developers.zoom.us/docs/integrations/oauth-scopes/
+
+Rate Limits
+https://developers.zoom.us/docs/api/rest/rate-limits/
+
+Marketplace Publishing Guide
+https://developers.zoom.us/docs/marketplace/publish/
+
+Meeting SDK Documentation
+https://developers.zoom.us/docs/meeting-sdk/
+
+Zoom Developer Documentation Home
+https://developers.zoom.us/docs/
+
+Zoom API Reference (Swagger-style)
+https://developers.zoom.us/docs/api/rest/
+
+Zoom Marketplace
+https://marketplace.zoom.us/
+
+Zoom Developer Forum
+https://devforum.zoom.us/
+
+
+===============================================================================================
+Boards, and task managments.
+most commonly used task management toosl
+jira,
+asana,
+monday.com,
+trello,
+clickup,
+notion,
+linear
+=========================
+implementation effort:
+
+Easiest APIs
+
+Trello
+Asana
+ClickUp
+
+Medium
+
+Jira
+Monday
+Notion
+
+==========================
+jira is the most common in companies,
+most detailed >> projects, epics, sprints, issues, workfows, custom fields.
+complex integration 
+
+trillon have smll share of the market, but it is easier and simpller in intergration
+you only have >> boaards, lists, cards. and thats it.
+
+=============
+You can read:
+
+Projects
+Boards
+Sprints
+Epics
+Issues
+Comments
+Attachments
+Users
+Statuses
+Workflows
+
+Basically everything. Jira's API is extremely comprehensive.
+==================
+usefull docs we will need.
+
+OAuth 2.0 (3LO) Apps Guide
+https://developer.atlassian.com/cloud/jira/platform/oauth-2-3lo-apps/
+OAuth Scopes for Jira Cloud
+https://developer.atlassian.com/cloud/jira/platform/scopes-for-oauth-2-3LO-and-forge-apps/
+Jira REST API v3 Introduction
+https://developer.atlassian.com/cloud/jira/platform/rest/v3/intro/
+Issue API Group
+https://developer.atlassian.com/cloud/jira/platform/rest/v3/api-group-issues/
+Board API Group
+https://developer.atlassian.com/cloud/jira/software/rest/api-group-board/
+Webhooks Guide
+https://developer.atlassian.com/cloud/jira/platform/webhooks/
+Rate Limiting Guide
+https://developer.atlassian.com/cloud/jira/platform/rate-limiting/
+
+
+=====================================
+cooding 
+git providers 
+github,
+gitlabs,
+bitbucket,
+
+=============
+github is the industry standard in all aspects
+gh has 5000 req/hour per user, gitlab has up to thousands of requist per minut
+
+=================
+important docs 
+
+GitHub Apps Overview
+https://docs.github.com/en/apps/creating-github-apps/about-creating-github-apps
+Choosing Between GitHub Apps and OAuth Apps
+https://docs.github.com/en/apps/creating-github-apps/deciding-when-to-build-a-github-app
+Authorizing OAuth Apps
+https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/authorizing-oauth-apps
+Repository API
+https://docs.github.com/en/rest/repos
+Commits API
+https://docs.github.com/en/rest/commits
+Pull Requests API
+https://docs.github.com/en/rest/pulls
+Issues API
+https://docs.github.com/en/rest/issues
+Webhook Events and Payloads
+https://docs.github.com/en/webhooks/webhook-events-and-payloads

@@ -1,0 +1,88 @@
+=> as a user of aian, i want to mention aian in a message to schudal/ update/ delete a 
+meeting between me and dev2, 
+so aian schudals the meeting, add it to the company board, send a reminder to me and
+to dev 2, attend the meeting, transcript it, and migrate the sanitized transcript to the
+vector db.
+
+=> as a user of aian, i wan to be able to create an organization account, chose chose tech stack of my company for each eye, 
+like chose slack for messaging, jira for task managment, zoom for meetings, and github for coding for example,
+
+=> as a user of aian, i want to be able to link each eye service provider i chosed using oauth directly form aian.
+
+=> as a user of aian, i want to add users to my organization in aian, specify ther role in the org, prevlages, monitor there activites via aian.
+
+=> as a user of aian, i want to be able to ask aian any question about the org and be able to get accurate insights form the org db.
+
+some usecases:
+)"Approach A هنستخدم"
+.2 أنا ك Manager Engineering عاوز أيان يكشف لو القرار اللي اتاخد في الميتنج )مثالً
+في الشات، أو عن اللي Jira بيقول إنه التاسك ده، أو عن الكود اللي فعلًيا اترفع على
+مختلف عن اللي اتفق عليه فعالً
+GitHub عشان نمسك التضارب قبل ما يتحول إلعادة شغل
+
+يان "ليه اخترنا الـ Architecture دي؟" وياخد إجابة واحدة مج ّمعة من الميتنج اللي اتقرر
+.5 أنا ك موظف جديد، عايز أسأل َأ
+فيها، نقاش الشات اللي سبقها، الـ epic Jira المرتبط بيها، والكود الفعلي اللي بينفذها مش أربع إجابات منفصلة.
+
+ أنا ك Manager Engineering، عايز "Finder Expert "يدور في تاريخ المشكلة المشابهة عبر األربع مصادر مع
+بعض: نقاش الشات اللي حلها، تاسك Jira اللي قفلها، الكود اللي فيه الـ fix على GitHub، وأي ميتنج تقني اتناقشت فيه
+وياخد كل ده ويرشحلي الشخص والحل األقرب فو ًرا
+
+as a user i want to be albe to ask for any but made before, and aian provide me with teh full context of it, who made it, what meetings were
+held in it, who worked on it, waht pr pushed ro it, what are the tickets related to it,
+
+=> as a user of aian, i want to be able to crud tasks to my taks managment provider via chatign, like mentioning aian in any chat, asking it to add this task
+at that poard, or epic, attach tehse devs to it, send a reminder to any one envolved. and so on.
+
+=> as a user of aian, i want to ask aian to give me my paln  of today, like get all the tickets attached to me, all the meetings scheduald for me,
+prepare them in a timeline manar, with progreess par or percentage through the day.
+in the report, it can show if we are still following the plan we decided in the meeting, or we did not.
+
+=> as a user of aian, i want to be able to genereate a performance report for each employee based on actual work done, acutal tickets finished, 
+actual pr accepted, and any other metrix available to aina,
+send this report of all the employees to teh ceo, send each employee his own reprot for exaple.
+
+reports shapes::
+ أنا ك Master Scrum، عايز alert لو حد قال في الـ Standup Daily إن تاسك معينة "Blocked"، وبعد يومين
+مفيش أي تحديث ليها في الشات، وال تغيير في حالتها على Jira، وال أي كود مرتبط بيها على GitHub عشان أتدخل قبل ما
+البلوكر يتحول لتأخير حقيقي
+
+ أنا ك Master Scrum، عايز alert لو حد قال في الـ Standup Daily إن تاسك معينة "Blocked"، وبعد يومين
+مفيش أي تحديث ليها في الشات، وال تغيير في حالتها على Jira، وال أي كود مرتبط بيها على GitHub عشان أتدخل قبل ما
+البلوكر يتحول لتأخير حقيقي
+
+يان يكشف "فجوات الوعود" )Gaps Promise): حد قال في ميتنج "هخلصها
+.7 أنا ك Manager Project، عايز َأ
+الجمعة"، بس الميعاد ده مش متطابق مع date due في Jira، ومفيش تحديث في الشات، ومفيش أي commit جديد قرب
+الميعاد عشان أدير توقعات اإلدارة أو العميل بدري
+
+.9 أنا ك Lead Tech، عايز "Score Alignment "أسبوعي لكل مشروع يقيس مدى التطابق بين: اللي اتقال في الميتنجز،
+اللي اتوعد بيه في الشات، اللي مسجل في Jira، واللي اتشحن فعلًيا في GitHub — عشان أقيس باألرقام هل كالم التيم
+بيتطابق مع شغلهم الحقيقي وال فيه فجوة دايمة
+
+send monthly repots of the buts made this month and there solutions.
+
+=> aian is able to send alerts to some users if it is necessary."the website is down" or " some one break terms and services in the chat"
+
+=> as a user of aian, i want to be able to get insights of the mental and emotional helth of my employees based on there tone of messages, like calm,
+angry, sad, stressed, and so on, to be able to act apon them.
+
+=> as a user of aian, i want to be able to upload any docds, bugs, files, to aian to be able to analyaze ,vectorize, and add to its vector db knowladge.
+
+
+== >  أنا ك CEO، عايز "Score Health Organizational "شهري يجمع: استقرار القرارات بين الميتنج والتنفيذ، سرعة
+استجابة الشات، التزام الـ deadlines في Jira، وسرعة الرفع على GitHub في مؤشر واحد أعرضه في اجتماع اإلدارة
+كمقياس لصحة التنفيذ في الشركة كلها
+aka: provide a dashboard with all teh kpis aobut the organization, to be able ot monitor each and every thing aobut the employeees, productivity
+emotions, taksk, project ,etc.
+
+User story 1:
+as a team leader maybe one day I’ll observe a wrong answer from the bot which is caused because of conflicts between employees, misunderstanding or overwhelming with data, so I want to give him a direct order to replace his data via a private channel that no one can access except team leader.
+this allow rag to know information directly without concluding it.
+also team leader can give him direct data at the beginning of each sprint or any data that he believes it’s critical. 
+
+User story 4:
+As an Employee,
+I want to receive a comprehensive summary containing data integrated from GitHub, Jira, and Slack,
+So that I have a single consolidated view of all relevant cross-platform activities.
+.
