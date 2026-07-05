@@ -7,8 +7,9 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { UploadService, UploadCategory } from '../upload/upload.service';
+import { UploadService } from '../upload/upload.service';
 import { EmailService } from '../email/email.service';
+import { TestEmailDto, TestUploadDto } from './dto/test.dto';
 
 @Controller('test')
 export class TestController {
@@ -21,7 +22,7 @@ export class TestController {
   @UseInterceptors(FileInterceptor('file')) // Automatically extracts multipart/form-data field named 'file'
   async testUpload(
     @UploadedFile() file: Express.Multer.File,
-    @Body('category') category?: string,
+    @Body() dto: TestUploadDto,
   ) {
     if (!file) {
       throw new BadRequestException(
@@ -29,7 +30,7 @@ export class TestController {
       );
     }
 
-    const uploadCategory = (category as UploadCategory) || 'misc';
+    const uploadCategory = dto.category || 'misc';
     const publicUrl = await this.uploadService.uploadFile(file, uploadCategory);
 
     return {
@@ -46,22 +47,13 @@ export class TestController {
   }
 
   @Post('email')
-  async testEmail(
-    @Body('to') to: string,
-    @Body('subject') subject: string,
-    @Body('body') body: string,
-  ) {
-    if (!to || !subject || !body) {
-      throw new BadRequestException(
-        'Please provide "to", "subject", and "body" in the JSON payload.',
-      );
-    }
-
-    await this.emailService.sendBrandedEmail(to, subject, body);
+  async testEmail(@Body() dto: TestEmailDto) {
+    // DTO automatically ensures to, subject, and body are present and valid
+    await this.emailService.sendBrandedEmail(dto.to, dto.subject, dto.body);
 
     return {
       success: true,
-      message: `Test email sent successfully to ${to}`,
+      message: `Test email sent successfully to ${dto.to}`,
     };
   }
 }

@@ -1,4 +1,8 @@
-import { Injectable, Logger, InternalServerErrorException } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { EmailProvider } from './email.provider';
 import * as nodemailer from 'nodemailer';
 
@@ -27,9 +31,14 @@ export class NodemailerProvider implements EmailProvider {
         subject,
         html,
       });
-      this.logger.log(`Email sent successfully to ${to}. Message ID: ${info.messageId}`);
+      this.logger.log(
+        `Email sent successfully to ${to}. Message ID: ${info.messageId}`,
+      );
     } catch (error: any) {
-      this.logger.error(`Failed to send email to ${to}: ${error.message}`, error.stack);
+      this.logger.error(
+        `Failed to send email to ${to}: ${error.message}`,
+        error.stack,
+      );
       throw new InternalServerErrorException('Failed to send email.');
     }
   }

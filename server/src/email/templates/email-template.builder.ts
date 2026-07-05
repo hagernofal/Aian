@@ -1,7 +1,7 @@
 /**
  * Wraps the specific email content inside a standard branded layout.
  * This ensures all emails have the same header, footer, and styling.
- * 
+ *
  * @param contentHtml The specific HTML body for this email (e.g., a welcome message)
  * @returns The fully constructed HTML string ready to be sent
  */
