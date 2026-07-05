@@ -5,7 +5,7 @@ import {
   IsOptional,
   IsIn,
 } from 'class-validator';
-import { UploadCategory } from '../../upload/upload.service';
+import type { UploadCategory } from '../../upload/upload.service';
 
 export class TestEmailDto {
   @IsEmail({}, { message: 'A valid "to" email address is required.' })
