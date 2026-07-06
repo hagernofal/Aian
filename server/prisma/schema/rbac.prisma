@@ -14,10 +14,10 @@ model Role {
 }
 
 model Permission {
-  id          String   @id @default(uuid())
-  key         String   @unique @db.VarChar(100)
-  name        String   @db.VarChar(150)
-  description String?  @db.Text
+  id          String  @id @default(uuid())
+  key         String  @unique @db.VarChar(100)
+  name        String  @db.VarChar(150)
+  description String? @db.Text
 
   // Relations
   roles RolePermission[]
@@ -38,15 +38,15 @@ model RolePermission {
 }
 
 model OrganizationMember {
-  id               String           @id @default(uuid())
-  organizationId   String           @map("organization_id")
-  userId           String           @map("user_id")
-  roleId           String           @map("role_id")
-  memberStatus     MembershipStatus @default(invited) @map("member_status")
-  invitedByUserId  String?          @map("invited_by_user_id")
-  joinedAt         DateTime?        @map("joined_at") @db.Timestamptz
-  createdAt        DateTime         @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt        DateTime         @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
+  id              String           @id @default(uuid())
+  organizationId  String           @map("organization_id")
+  userId          String           @map("user_id")
+  roleId          String           @map("role_id")
+  memberStatus    MembershipStatus @default(invited) @map("member_status")
+  invitedByUserId String?          @map("invited_by_user_id")
+  joinedAt        DateTime?        @map("joined_at") @db.Timestamptz
+  createdAt       DateTime         @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt       DateTime         @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
 
   // Relations
   organization  Organization @relation(fields: [organizationId], references: [id])
