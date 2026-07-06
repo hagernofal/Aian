@@ -18,7 +18,8 @@ export class AuthService {
         if(password!==confirmPassword){
             throw new BadRequestException({
                 success:false,
-                message:'password and confirm password are not matched'
+                message:'password and confirm password are not matched',
+                error:{type:'BadRequestException'}
             })
         }
 
@@ -26,7 +27,8 @@ export class AuthService {
         if(existedUser){
             throw new BadRequestException({
                 success:false,
-                message:'user is already exist'
+                message:'user is already exist',
+                error:{type:'BadRequestException'}
             })
         }
 
@@ -40,7 +42,8 @@ export class AuthService {
         if(!existedUser){
             throw new UnauthorizedException({
                 success:false,
-                error:'invalid email or password'
+                message:'invalid email or password',
+                error:{type:'UnauthorizedException'}
             })
         }
 
@@ -48,7 +51,8 @@ export class AuthService {
         if(!isMatched){
             throw new UnauthorizedException({
                 success:false,
-                error:'invalid email or password'
+                message:'invalid email or password',
+                error:{type:'UnauthorizedException'}
             })
         }
 
@@ -92,10 +96,10 @@ export class AuthService {
             await this.jwtService.verifyAsync(refreshToken, {
                 secret: process.env.JWT_SECRET_REFRESH_TOKEN,
             });
-        } catch (error) {
-            throw new ForbiddenException({ success: false, message: 'Expired or invalid refresh token' });
+        } catch (error:any) {
+            throw new ForbiddenException({ success: false, message: 'Expired or invalid refresh token',error:{message:error.message} });
         }
-        
+
         const user = await this.prismaService.user.findUnique({where:{id:userid}});
         if (!user || !user.refreshTokenHash) {
             throw new ForbiddenException({
@@ -107,7 +111,8 @@ export class AuthService {
         if(!isMatched){
             throw new ForbiddenException({
                 success:false,
-                message:'Access denied'
+                message:'Access denied',
+                error:{message:'Refresh token does not match'}
             });
         }
 
