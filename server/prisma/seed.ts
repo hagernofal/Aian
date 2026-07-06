@@ -5,6 +5,7 @@
 import 'dotenv/config';
 import { PrismaClient } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
+import * as bcrypt from 'bcrypt';
 
 const adapter = new PrismaPg({
   connectionString: process.env.DATABASE_URL,
@@ -291,8 +292,8 @@ async function main() {
 
   // 7. Seed Simulated Users
   console.log('Seeding simulated users...');
-  // Note: Password hash is a dummy value for the simulation
-  const dummyHash = '$argon2id$v=19$m=65536,t=3,p=4$dummyhash$dummyhash';
+  // Actually hash a default password so users can log in
+  const realHash = await bcrypt.hash('password123', 10);
 
   const usersData = [
     { fullName: 'Amir Alsayed', email: 'amir.alsayed@example.com' },
@@ -311,7 +312,7 @@ async function main() {
   for (const u of usersData) {
     createdUsers.push(
       await prisma.user.create({
-        data: { ...u, passwordHash: dummyHash, status: 'active' },
+        data: { ...u, passwordHash: realHash, status: 'active' },
       }),
     );
   }
