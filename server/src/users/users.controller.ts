@@ -25,6 +25,9 @@ export class UsersController {
         if(email){
                 try{
                 const user= await this.usersService.findOneByEmail(email);
+                if(!user){
+                    throw new NotFoundException('user not found')
+                }
                 return {user:new UserEntity(user)};
             }catch(error:any){
                 this.handleException(error);
