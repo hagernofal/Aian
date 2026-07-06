@@ -69,12 +69,12 @@ export class UsersController {
         if (error.message === "user not found") {
             throw new NotFoundException({
                 success: false,
-                error: error.message
+                message: error.message
             });
         }
         throw new BadRequestException({
             success: false,
-            error: error.message
+            message: error.message
         });
     }
 }

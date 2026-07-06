@@ -8,7 +8,8 @@ export class UserEntity implements User {
 
   @Exclude() 
   passwordHash: string | null;
-
+  refreshTokenHash: string | null
+  
   emailVerifiedAt: Date | null;
   status: UserStatus;
   createdAt: Date;

@@ -1,8 +1,9 @@
-import { BadRequestException, ClassSerializerInterceptor, Injectable, UnauthorizedException, UseInterceptors } from '@nestjs/common';
+import { BadRequestException, ClassSerializerInterceptor, ForbiddenException, Injectable, NotFoundException, UnauthorizedException, UseInterceptors } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
+import { error } from 'console';
 
 @Injectable()
 export class AuthService {
@@ -12,12 +13,20 @@ export class AuthService {
         private readonly jwtService:JwtService
     ){}
 
-    async SignUp(fullName:string, email:string, password:string){
+    async SignUp(fullName: string, email: string, password: string, confirmPassword: string){
+
+        if(password!==confirmPassword){
+            throw new BadRequestException({
+                success:false,
+                message:'password and confirm password are not matched'
+            })
+        }
+
         const existedUser= await this.usersService.findOneByEmail(email);
         if(existedUser){
             throw new BadRequestException({
                 success:false,
-                error:'user is already exist'
+                message:'user is already exist'
             })
         }
 
@@ -43,12 +52,80 @@ export class AuthService {
             })
         }
 
-        let user={
+        let payload={
             id:existedUser.id,
             email:existedUser.email,
             fullName:existedUser.fullName
         }
-        const access_token= await this.jwtService.signAsync(user);
-        return {user,access_token} 
+
+        const {access_token,refresh_token}= await this.getTokens(payload);
+        this.updateRefreshToken(existedUser.id,refresh_token);
+
+        return {user:payload,access_token,refresh_token} 
+    }
+
+    async getTokens(payload:any){
+        const [access_token,refresh_token]= await Promise.all([
+            this.jwtService.signAsync(payload,{
+                secret:process.env.JWT_SECRET,
+                expiresIn:'1h'
+            }),
+            this.jwtService.signAsync(payload,{
+                secret:process.env.JWT_SECRET_REFRESH_TOKEN,
+                expiresIn:'30d'
+            }),
+
+        ])
+        return {access_token,refresh_token}
+    }
+
+    async updateRefreshToken(userid:string,refreshToken:string){
+        const newrefreshTokenHash = await bcrypt.hash(refreshToken,10)
+        await this.prismaService.user.update({
+            where:{id:userid},
+            data:{refreshTokenHash:newrefreshTokenHash}
+        })
+    }
+
+    async checkRefreshTokens(userid:string,refreshToken:string){
+        try {
+            await this.jwtService.verifyAsync(refreshToken, {
+                secret: process.env.JWT_SECRET_REFRESH_TOKEN,
+            });
+        } catch (error) {
+            throw new ForbiddenException({ success: false, message: 'Expired or invalid refresh token' });
+        }
+        
+        const user = await this.prismaService.user.findUnique({where:{id:userid}});
+        if (!user || !user.refreshTokenHash) {
+            throw new ForbiddenException({
+                success:false,
+                message:'Access denied'
+            });
+        }
+        const isMatched= await bcrypt.compare(refreshToken, user.refreshTokenHash as string);
+        if(!isMatched){
+            throw new ForbiddenException({
+                success:false,
+                message:'Access denied'
+            });
+        }
+
+        const payload={
+            id:user.id,
+            email:user.email,
+            fullName:user.fullName
+        }
+
+        const {access_token,refresh_token} = await this.getTokens(payload)
+        this.updateRefreshToken(userid,refresh_token);
+        return {access_token,refresh_token};
+    }
+
+    async logOut(userId:string){
+        await this.prismaService.user.update({
+            where:{id:userId},
+            data:{refreshTokenHash:null}
+        })
     }
 }

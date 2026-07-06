@@ -5,6 +5,7 @@ model User {
   passwordHash    String?    @map("password_hash") @db.Text
   emailVerifiedAt DateTime?  @map("email_verified_at") @db.Timestamptz
   status          UserStatus @default(pending_verification)
+  refreshTokenHash String?
   createdAt       DateTime   @default(now()) @map("created_at") @db.Timestamptz
   updatedAt       DateTime   @default(now()) @updatedAt @map("updated_at") @db.Timestamptz
 
