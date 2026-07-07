@@ -8,12 +8,20 @@ export class UserEntity implements User {
 
   @Exclude() 
   passwordHash: string | null;
-  refreshTokenHash: string | null
+  
+  @Exclude()
+  refreshTokenHash: string | null;
   
   emailVerifiedAt: Date | null;
   status: UserStatus;
   createdAt: Date;
   updatedAt: Date;
+
+  organizationId: string | null;
+  roleId: string | null;
+  memberStatus: any | null;
+  joinedAt: Date | null;
+  invitedByUserId: string | null;
 
   constructor(partial: Partial<UserEntity>) {
     Object.assign(this, partial);

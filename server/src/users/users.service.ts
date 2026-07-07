@@ -18,17 +18,36 @@ export class UsersService {
     }
 
     async findOneById(id:string){
-        const user= await this.prismaService.user.findUnique({where:{id}});
+        const user= await this.prismaService.user.findUnique({
+            where:{id},
+            include: {
+            role: {
+                select: {
+                id: true,  
+                name: true,
+                }
+            }
+            }
+        });
         if(!user){
             throw new Error('user not found');
         }
         return user;
     }
 
-    async findOneByEmail(email:string){
-        const user= await this.prismaService.user.findUnique({where:{email}});
-        return user;
-    }
+    async findOneByEmail(email: string) {
+        return this.prismaService.user.findUnique({
+            where: { email },
+            include: {
+            role: {
+                select: {
+                id: true,  
+                name: true,
+                }
+            }
+            }
+        });
+        }
 
     async findAll(){
         const users= await this.prismaService.user.findMany();

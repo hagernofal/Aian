@@ -6,7 +6,12 @@ import { UserEntity } from './user.entity';
 import { AuthGaurd } from '../auth/auth.gaurd';
 import { CurrentUser } from '../decorators/current-user.decorator';
 import { User } from '@prisma/client';
+import { RequiredPermissions } from '../decorators/required-permissions.decorator';
+import { RolesGaurds } from '../roles_permissions/roles.gaurd';
 
+
+
+@UseGuards(AuthGaurd,RolesGaurds)
 @Controller('users')
 export class UsersController {
     constructor(
@@ -24,7 +29,7 @@ export class UsersController {
     }
 
     @Get()
-    @UseGuards(AuthGaurd)
+    @RequiredPermissions('dashboard.read','providers.read')
     async findAllOrOneByEmail(@Query('email') email:string,@CurrentUser()user:any){
         console.log(user)
         if(email){

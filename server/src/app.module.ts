@@ -9,6 +9,7 @@ import { EmailModule } from './email/email.module';
 import { UsersModule } from './users/users.module'
 import { AuthModule } from './auth/auth.module';
 import { JwtModule } from '@nestjs/jwt';
+import { RolesPermissionsModule } from './roles_permissions/roles_permissions.module';
 
 @Module({
   imports: [
@@ -26,7 +27,8 @@ import { JwtModule } from '@nestjs/jwt';
     EmailModule,
     TestModule,
     UsersModule,
-    AuthModule
+    AuthModule,
+    RolesPermissionsModule
   ],
 })
 export class AppModule {}

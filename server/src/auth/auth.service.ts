@@ -59,7 +59,9 @@ export class AuthService {
         let payload={
             id:existedUser.id,
             email:existedUser.email,
-            fullName:existedUser.fullName
+            fullName:existedUser.fullName,
+            roleId:existedUser.roleId,
+            role:existedUser.role?.name||'unkown'
         }
 
         const {access_token,refresh_token}= await this.getTokens(payload);
@@ -100,7 +102,17 @@ export class AuthService {
             throw new ForbiddenException({ success: false, message: 'Expired or invalid refresh token',error:{message:error.message} });
         }
 
-        const user = await this.prismaService.user.findUnique({where:{id:userid}});
+        const user = await this.prismaService.user.findUnique({
+            where:{id:userid},
+            include: {
+            role: {
+                select: {
+                id: true,  
+                name: true,
+                }
+            }
+            }
+        });
         if (!user || !user.refreshTokenHash) {
             throw new ForbiddenException({
                 success:false,
@@ -116,10 +128,12 @@ export class AuthService {
             });
         }
 
-        const payload={
+        let payload={
             id:user.id,
             email:user.email,
-            fullName:user.fullName
+            fullName:user.fullName,
+            roleId:user.roleId,
+            role:user.role?.name||'unkown'
         }
 
         const {access_token,refresh_token} = await this.getTokens(payload)

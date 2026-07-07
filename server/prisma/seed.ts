@@ -6,6 +6,7 @@ import 'dotenv/config';
 import { PrismaClient } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 import * as bcrypt from 'bcrypt';
+import * as crypto from 'crypto';
 
 const adapter = new PrismaPg({
   connectionString: process.env.DATABASE_URL,
@@ -26,9 +27,8 @@ async function main() {
   await prisma.organizationKnowledgeFile.deleteMany();
   await prisma.payment.deleteMany();
   await prisma.subscription.deleteMany();
-  await prisma.organizationMember.deleteMany();
-  await prisma.organization.deleteMany();
   await prisma.user.deleteMany();
+  await prisma.organization.deleteMany();
 
   await prisma.eyeProvider.deleteMany();
   await prisma.provider.deleteMany();
@@ -38,7 +38,6 @@ async function main() {
   await prisma.permission.deleteMany();
   await prisma.role.deleteMany();
 
-  // 2. Seed System Roles
   console.log('Seeding roles...');
   const ownerRole = await prisma.role.create({
     data: {
@@ -290,48 +289,84 @@ async function main() {
     ],
   });
 
-  // 7. Seed Simulated Users
-  console.log('Seeding simulated users...');
-  // Actually hash a default password so users can log in
+  // 7. Seed Simulated Users & Organizations
+  console.log('Seeding simulated users and organization...');
   const realHash = await bcrypt.hash('password123', 10);
 
   const usersData = [
-    { fullName: 'Amir Alsayed', email: 'amir.alsayed@example.com' },
     { fullName: 'Amir Mawla', email: 'amir.mawla@example.com' },
     { fullName: 'Mohamed Elazzazy', email: 'mohamed.elazzazy@example.com' },
     { fullName: 'Hager Nofal', email: 'hager.nofal@example.com' },
     { fullName: 'Donia Mohamed', email: 'donia.mohamed@example.com' },
     { fullName: 'Bahgat Ghonim', email: 'bahgat.ghonim@example.com' },
     { fullName: 'Adel Saber', email: 'adel.saber@example.com' },
-    { fullName: 'Mohamed Salah', email: 'mohamed.salah@example.com' }, // Easter egg
-    { fullName: 'Mahmoud Trezeguet', email: 'mahmoud.trezeguet@example.com' }, // Easter egg
-    { fullName: 'Mohamed Elneny', email: 'mohamed.elneny@example.com' }, // Easter egg
+    { fullName: 'Mohamed Salah', email: 'mohamed.salah@example.com' },
+    { fullName: 'Mahmoud Trezeguet', email: 'mahmoud.trezeguet@example.com' },
+    { fullName: 'Mohamed Elneny', email: 'mohamed.elneny@example.com' },
   ];
 
-  const createdUsers = [];
-  for (const u of usersData) {
-    createdUsers.push(
-      await prisma.user.create({
-        data: { ...u, passwordHash: realHash, status: 'active' },
-      }),
-    );
+  const targetOrgId = crypto.randomUUID();
+  const targetOwnerId = crypto.randomUUID();
+
+  console.log('Temporarily disabling FK triggers to resolve circular dependency...');
+  await prisma.$executeRawUnsafe('ALTER TABLE "users" DISABLE TRIGGER ALL;');
+  await prisma.$executeRawUnsafe('ALTER TABLE "organizations" DISABLE TRIGGER ALL;');
+
+  let ownerUser;
+  let org;
+  try {
+    ownerUser = await prisma.user.create({
+      data: {
+        id: targetOwnerId,
+        fullName: 'Amir Alsayed',
+        email: 'amir.alsayed@example.com',
+        passwordHash: realHash,
+        status: 'active',
+        roleId: ownerRole.id,
+        memberStatus: 'active',
+        joinedAt: new Date(),
+        organizationId: targetOrgId,
+      },
+    });
+
+    org = await prisma.organization.create({
+      data: {
+        id: targetOrgId,
+        name: 'Acme AI Solutions',
+        slug: 'acme-ai-solutions',
+        description: 'The simulated organization for Sprint 1 testing',
+        timezone: 'Africa/Cairo',
+        status: 'active',
+        createdByUserId: ownerUser.id,
+      },
+    });
+  } finally {
+    // Always re-enable triggers, even if the inserts above fail,
+    // so the schema's integrity enforcement is restored immediately.
+    console.log('Re-enabling FK triggers...');
+    await prisma.$executeRawUnsafe('ALTER TABLE "users" ENABLE TRIGGER ALL;');
+    await prisma.$executeRawUnsafe('ALTER TABLE "organizations" ENABLE TRIGGER ALL;');
   }
 
-  const ownerUser = createdUsers[0]; // Amir Alsayed
-
-  // 8. Seed Organization and Billing
-  console.log('Seeding organization and billing...');
-  const org = await prisma.organization.create({
-    data: {
-      name: 'Acme AI Solutions',
-      slug: 'acme-ai-solutions',
-      description: 'The simulated organization for Sprint 1 testing',
-      timezone: 'Africa/Cairo',
-      status: 'active',
-      createdByUserId: ownerUser.id,
-    },
-  });
-
+  const createdUsers = [ownerUser];
+  for (let i = 0; i < usersData.length; i++) {
+    const u = usersData[i];
+    const user = await prisma.user.create({
+      data: {
+        ...u,
+        passwordHash: realHash,
+        status: 'active',
+        organizationId: org.id,
+        roleId: i <= 2 ? adminRole.id : memberRole.id,
+        memberStatus: 'active',
+        invitedByUserId: ownerUser.id,
+        joinedAt: new Date(),
+      },
+    });
+    createdUsers.push(user);
+  }
+  // 8. Seed Billing
+  console.log('Seeding billing...');
   const subscription = await prisma.subscription.create({
     data: {
       organizationId: org.id,
@@ -356,35 +391,8 @@ async function main() {
   });
 
   // 9. Seed Organization Members
-  console.log('Seeding organization members...');
-  // Assign owner role to Amir Alsayed
-  await prisma.organizationMember.create({
-    data: {
-      organizationId: org.id,
-      userId: ownerUser.id,
-      roleId: ownerRole.id,
-      memberStatus: 'active',
-      joinedAt: new Date(),
-    },
-  });
-
-  // Assign admin role to a couple of users, member to the rest
-  for (let i = 1; i < createdUsers.length; i++) {
-    await prisma.organizationMember.create({
-      data: {
-        organizationId: org.id,
-        userId: createdUsers[i].id,
-        roleId: i <= 3 ? adminRole.id : memberRole.id, // Next 3 are admins, rest are members
-        memberStatus: 'active',
-        invitedByUserId: ownerUser.id,
-        joinedAt: new Date(),
-      },
-    });
-  }
 
   // 10. Seed Organization Eyes (V1 setup)
-  // Per instructions: "seeding must be in terms of teh fisrt spring only... so no seed for the integration part."
-  // So we create the Organization Eyes with the provider selected, but status is "disconnected" and no Integration records.
   console.log('Seeding organization eyes...');
 
   await prisma.organizationEye.create({
