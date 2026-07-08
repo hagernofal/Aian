@@ -1,33 +1,10 @@
 import { type ReactNode, useEffect, useState } from "react";
 import Link from "next/link";
 import { motion } from "motion/react";
-import { Moon, Sun } from "lucide-react";
 import { AianLogo } from "@/components/ui/Logo";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { NeuralBackdrop } from "@/components/features/landing/NeuralBackdrop";
 import { AuthVisual } from "@/components/features/auth/AuthVisual";
-
-function ThemeToggle() {
-  const [dark, setDark] = useState(true);
-  useEffect(() => {
-    const isDark = document.documentElement.classList.contains("dark");
-    setDark(isDark);
-  }, []);
-  const toggle = () => {
-    const next = !dark;
-    setDark(next);
-    document.documentElement.classList.toggle("dark", next);
-  };
-  return (
-    <button
-      onClick={toggle}
-      aria-label="Toggle theme"
-      className="group relative inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] text-muted-foreground backdrop-blur transition-all hover:border-white/20 hover:text-foreground hover:bg-white/[0.06]"
-    >
-      <Sun className={"h-4 w-4 transition-all " + (dark ? "scale-0 rotate-90 opacity-0" : "scale-100 rotate-0 opacity-100")} />
-      <Moon className={"absolute h-4 w-4 transition-all " + (dark ? "scale-100 rotate-0 opacity-100" : "scale-0 -rotate-90 opacity-0")} />
-    </button>
-  );
-}
 
 function AuthHeader() {
   return (
