@@ -52,8 +52,9 @@ export class MembersController {
     @Param('organizationId') organizationId: string,
     @Param('memberId') memberId: string,
     @Body() dto: ChangeMemberRoleDto,
+    @CurrentUser() user: { id: string },
   ) {
-    return this.membersService.changeRole(organizationId, memberId, dto);
+    return this.membersService.changeRole(organizationId, memberId, dto, user.id);
   }
 
   @Patch(':memberId/status')
@@ -63,8 +64,9 @@ export class MembersController {
     @Param('organizationId') organizationId: string,
     @Param('memberId') memberId: string,
     @Body() dto: ChangeMemberStatusDto,
+    @CurrentUser() user: { id: string },
   ) {
-    return this.membersService.changeStatus(organizationId, memberId, dto);
+    return this.membersService.changeStatus(organizationId, memberId, dto, user.id);
   }
 
   @Delete(':memberId')
@@ -73,7 +75,8 @@ export class MembersController {
   async removeMember(
     @Param('organizationId') organizationId: string,
     @Param('memberId') memberId: string,
+    @CurrentUser() user: { id: string },
   ) {
-    return this.membersService.removeMember(organizationId, memberId);
+    return this.membersService.removeMember(organizationId, memberId, user.id);
   }
 }
