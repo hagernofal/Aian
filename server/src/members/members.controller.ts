@@ -15,12 +15,12 @@ import { InviteMemberDto } from './dto/invite-member.dto';
 import { ChangeMemberRoleDto } from './dto/change-member-role.dto';
 import { ChangeMemberStatusDto } from './dto/change-member-status.dto';
 import { AuthGaurd } from '../auth/auth.gaurd';
-import { RolesGaurds } from '../roles_permissions/roles.gaurd';
+import { RolesGuards } from '../roles_permissions/roles.guard';
 import { RequiredPermissions } from '../decorators/required-permissions.decorator';
 import { CurrentUser } from '../decorators/current-user.decorator';
 
 @Controller('organizations/:organizationId/members')
-@UseGuards(AuthGaurd, RolesGaurds)
+@UseGuards(AuthGaurd, RolesGuards)
 export class MembersController {
   constructor(private readonly membersService: MembersService) {}
 

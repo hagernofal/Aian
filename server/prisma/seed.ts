@@ -19,7 +19,6 @@ async function main() {
 
   // 1. Clean existing data (in reverse dependency order)
   console.log('Cleaning existing data...');
-  await prisma.eyeSyncJob.deleteMany();
   await prisma.integrationResource.deleteMany();
   await prisma.integration.deleteMany();
   await prisma.organizationEye.deleteMany();
