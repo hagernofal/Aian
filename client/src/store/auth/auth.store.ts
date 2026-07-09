@@ -1,32 +1,30 @@
 import { create } from "zustand";
-
-type User = {
-  id: string;
-  email: string;
-  name: string;
-  role: string;
-};
+import { User } from "@/types/user_and_auth";
 
 type AuthState = {
   user: User | null;
-  token: string | null;
+  accessToken: string | null;
+  refreshToken: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   setUser: (user: User | null) => void;
-  setToken: (token: string | null) => void;
+  setTokens: (accessToken: string | null, refreshToken: string | null) => void;
   setIsLoading: (isLoading: boolean) => void;
-  login: (user: User, token: string) => void;
+  login: (user: User, accessToken: string, refreshToken: string) => void;
   logout: () => void;
 };
 
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,
-  token: null,
+  accessToken: null,
+  refreshToken: null,
   isAuthenticated: false,
   isLoading: false,
   setUser: (user) => set({ user, isAuthenticated: !!user }),
-  setToken: (token) => set({ token }),
+  setTokens: (accessToken, refreshToken) => set({ accessToken, refreshToken }),
   setIsLoading: (isLoading) => set({ isLoading }),
-  login: (user, token) => set({ user, token, isAuthenticated: true }),
-  logout: () => set({ user: null, token: null, isAuthenticated: false }),
+  login: (user, accessToken, refreshToken) => 
+    set({ user, accessToken, refreshToken, isAuthenticated: true }),
+  logout: () => 
+    set({ user: null, accessToken: null, refreshToken: null, isAuthenticated: false }),
 }));

@@ -1,7 +1,7 @@
 import axios from "axios";
-import { useAuthStore } from "@/store/auth/auth.store";
+import { useAuthStore } from "./../store/auth/auth.store";
 
-const API_URL = process.env.API_URL || "http://localhost:5000/api";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 export const api = axios.create({
   baseURL: API_URL,
@@ -13,23 +13,46 @@ export const api = axios.create({
 
 api.interceptors.request.use(
   (config) => {
-    const token = useAuthStore.getState().token;
+    const token = useAuthStore.getState().accessToken;
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
 
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
-    if (error.response && error.response.status === 401) {
-      useAuthStore.getState().logout();
+  async (error) => {
+    const originalRequest = error.config;
+
+    if (error.response && error.response.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+
+      const { user, refreshToken, logout, setTokens } = useAuthStore.getState();
+
+      if (user?.id && refreshToken) {
+        try {
+          const response = await axios.post(`${API_URL}/auth/refresh`, {
+            userId: user.id,
+            refreshToken: refreshToken,
+          });
+
+          const { access_token, refresh_token } = response.data;
+
+          setTokens(access_token, refresh_token);
+
+          originalRequest.headers.Authorization = `Bearer ${access_token}`;
+          return api(originalRequest);
+        } catch (refreshError) {
+          logout();
+          return Promise.reject(refreshError);
+        }
+      } else {
+        logout();
+      }
     }
     return Promise.reject(error);
   }
