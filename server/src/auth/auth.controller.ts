@@ -8,6 +8,7 @@ import {
   NotFoundException, 
   Post, 
   Req, 
+  Res, 
   UseGuards, 
   UseInterceptors
  } from '@nestjs/common';
@@ -77,8 +78,13 @@ export class AuthController {
 
   @Get('google/callback')
   @UseGuards(AuthGuard('google'))
-  async googleAuthRedirect(@Req() req:any) {
-    return this.authService.validateOAuthUser(req.user);
+  async googleAuthRedirect(@Req() req:any,@Res() res:any) {
+    const authData = await this.authService.validateOAuthUser(req.user);
+    const userJson = encodeURIComponent(JSON.stringify(authData.user));
+
+    return res.redirect(
+      `http://localhost:3000/oauth-success?token=${authData.access_token}&refresh_token=${authData.refresh_token}&user=${userJson}`
+    );
   }
 
   @Get('github')
@@ -88,7 +94,12 @@ export class AuthController {
 
   @Get('github/callback')
   @UseGuards(AuthGuard('github'))
-  async githubAuthRedirect(@Req() req:any) {
-    return this.authService.validateOAuthUser(req.user);
+  async githubAuthRedirect(@Req() req:any,@Res() res:any) {
+    const authData = await this.authService.validateOAuthUser(req.user);
+    const userJson = encodeURIComponent(JSON.stringify(authData.user));
+
+    return res.redirect(
+      `http://localhost:3000/oauth-success?token=${authData.access_token}&refresh_token=${authData.refresh_token}&user=${userJson}`
+    );
   }
 }
