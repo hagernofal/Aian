@@ -4,6 +4,7 @@ import { WebhookService } from './webhooks/webhook.service';
 import { WebhookSignatureValidatorFactory } from './webhooks/webhook-signature-validator.factory';
 import { WebhookEventDispatcherService } from './webhooks/webhook-event-dispatcher.service';
 import { IntegrationsModule } from '../../integrations/integrations.module';
+import { BaseCollectorService } from './base-collector.service';
 
 /**
  * Collection Module.
@@ -16,7 +17,8 @@ import { IntegrationsModule } from '../../integrations/integrations.module';
     WebhookSignatureValidatorFactory,
     WebhookEventDispatcherService,
     WebhookService,
+    BaseCollectorService,
   ],
-  exports: [WebhookSignatureValidatorFactory],
+  exports: [WebhookSignatureValidatorFactory, BaseCollectorService],
 })
 export class CollectionModule {}
