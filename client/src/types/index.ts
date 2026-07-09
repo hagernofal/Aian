@@ -3,8 +3,11 @@
 export interface User {
   id: string;
   email: string;
-  name: string;
+  fullName: string;
+  roleId: string;
   role: string;
+  organizationId: string;
+  organization: string;
 }
 
 export interface Activity {
