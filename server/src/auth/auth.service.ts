@@ -69,7 +69,7 @@ export class AuthService {
         }
 
         const {access_token,refresh_token}= await this.getTokens(payload);
-        this.updateRefreshToken(existedUser.id,refresh_token);
+        await this.updateRefreshToken(existedUser.id,refresh_token);
 
         return {user:payload,access_token,refresh_token} 
     }
@@ -149,7 +149,7 @@ export class AuthService {
         }
 
         const {access_token,refresh_token} = await this.getTokens(payload)
-        this.updateRefreshToken(userid,refresh_token);
+        await this.updateRefreshToken(userid,refresh_token);
         return {access_token,refresh_token};
     }
 
