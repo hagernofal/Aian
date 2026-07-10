@@ -26,8 +26,8 @@ export const useAuthStore = create<AuthState>((set) => ({
   login: (user, accessToken, refreshToken) => {
     set({ user, accessToken, refreshToken, isAuthenticated: true })
     console.log("User logged in:", user);
-    console.log("Access Token:", accessToken);
-    console.log("Refresh Token:", refreshToken);  
+    //console.log("Access Token:", accessToken);
+    //console.log("Refresh Token:", refreshToken);  
   },
   logout: () => 
     set({ user: null, accessToken: null, refreshToken: null, isAuthenticated: false }),
