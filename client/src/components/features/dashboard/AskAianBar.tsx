@@ -8,7 +8,7 @@ export function AskAianBar() {
         style={{ background: "radial-gradient(circle, #E8C86A, transparent 70%)" }}
       />
       <div className="relative">
-        <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-[11px] font-medium uppercase tracking-[0.22em] text-[color:var(--gold-soft)]">
+        <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-black/10 dark:border-white/10 bg-black/[0.03] dark:bg-white/[0.04] px-3 py-1 text-[11px] font-medium uppercase tracking-[0.22em] text-[color:var(--gold-soft)]">
           <Sparkles className="h-3 w-3" /> Ask AIAN
         </div>
         <h2 className="font-display text-[28px] font-semibold leading-tight tracking-tight md:text-[36px]">
@@ -21,11 +21,11 @@ export function AskAianBar() {
           <input
             disabled
             placeholder="Ask AIAN or search knowledge... (coming soon)"
-            className="h-14 w-full cursor-not-allowed rounded-2xl border border-white/10 bg-white/[0.02] pl-5 pr-14 text-[15px] text-muted-foreground/50 outline-none placeholder:text-muted-foreground/40"
+            className="h-14 w-full cursor-not-allowed rounded-2xl border border-black/10 dark:border-white/10 bg-black/[0.015] dark:bg-white/[0.02] pl-5 pr-14 text-[15px] text-muted-foreground/50 outline-none placeholder:text-muted-foreground/40"
           />
           <button
             disabled
-            className="absolute right-2 top-1/2 flex h-10 w-10 -translate-y-1/2 cursor-not-allowed items-center justify-center rounded-xl bg-white/[0.04] text-muted-foreground/40"
+            className="absolute right-2 top-1/2 flex h-10 w-10 -translate-y-1/2 cursor-not-allowed items-center justify-center rounded-xl bg-black/[0.03] dark:bg-white/[0.04] text-muted-foreground/40"
           >
             <ArrowUp className="h-4 w-4" />
           </button>

@@ -20,13 +20,13 @@ export function TeamCard({ organizationId }: { organizationId: string }) {
             <div
               key={m.id}
               title={`${m.fullName} — ${m.role.name}`}
-              className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-[color:var(--surface)] bg-white/[0.06] text-[12px] font-semibold"
+               className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-[color:var(--surface)] bg-black/[0.04] dark:bg-white/[0.06] text-[12px] font-semibold"
             >
               {m.fullName.charAt(0)}
             </div>
           ))}
           {remaining > 0 && (
-            <div className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-[color:var(--surface)] bg-white/[0.03] text-[11px] text-muted-foreground">
+           <div className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-[color:var(--surface)] bg-black/[0.02] dark:bg-white/[0.03] text-[11px] text-muted-foreground">
               +{remaining}
             </div>
           )}
@@ -35,3 +35,10 @@ export function TeamCard({ organizationId }: { organizationId: string }) {
     </Card>
   );
 }
+
+    
+             
+
+        
+            
+           

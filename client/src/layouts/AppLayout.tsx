@@ -75,6 +75,7 @@ function Sidebar({ collapsed, setCollapsed }: { collapsed: boolean; setCollapsed
     <aside
       className={cn(
         "relative hidden shrink-0 border-r border-white/5 bg-[color:var(--surface)]/60 backdrop-blur-xl transition-[width] duration-300 md:flex md:flex-col",
+        // "relative hidden shrink-0 border-r border-black/10 dark:border-white/5 bg-[color:var(--surface)]/60 backdrop-blur-xl transition-[width] duration-300 md:flex md:flex-col",
         collapsed ? "w-[76px]" : "w-[260px]",
       )}
     >

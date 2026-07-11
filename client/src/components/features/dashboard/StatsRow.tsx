@@ -16,7 +16,7 @@ export function StatsRow({ memberCount, roleCount }: { memberCount: number; role
             </div>
             <div className="mt-1 text-[11.5px] text-muted-foreground">{roleCount} roles</div>
           </div>
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/[0.03] text-[color:var(--gold-soft)]">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-black/10 dark:border-white/10 bg-black/[0.02] dark:bg-white/[0.03] text-[color:var(--gold-soft)]">
             <Users className="h-4 w-4" />
           </div>
         </div>

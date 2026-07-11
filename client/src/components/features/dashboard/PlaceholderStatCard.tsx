@@ -14,7 +14,7 @@ export function PlaceholderStatCard({ label, icon: Icon }: { label: string; icon
           </div>
           <div className="mt-1 text-[11px] text-muted-foreground/50">Coming soon</div>
         </div>
-        <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/[0.03] text-muted-foreground/40">
+        <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-black/10 dark:border-white/10 bg-black/[0.02] dark:bg-white/[0.03] text-muted-foreground/40">
           <Icon className="h-4 w-4" />
         </div>
       </div>

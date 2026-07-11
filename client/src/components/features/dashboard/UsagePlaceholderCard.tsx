@@ -22,8 +22,8 @@ export function UsagePlaceholderCard() {
               </span>
               <span className="text-muted-foreground/50">Coming soon</span>
             </div>
-            <div className="h-2 w-full overflow-hidden rounded-full bg-white/5">
-              <div className="h-full w-0 rounded-full bg-white/10" />
+            <div className="h-2 w-full overflow-hidden rounded-full bg-black/[0.04] dark:bg-white/5">
+              <div className="h-full w-0 rounded-full bg-black/10 dark:bg-white/10" />
             </div>
           </div>
         ))}
@@ -31,3 +31,6 @@ export function UsagePlaceholderCard() {
     </Card>
   );
 }
+
+
+           
