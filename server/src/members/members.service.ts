@@ -102,10 +102,11 @@ export class MembersService {
 
     const temporaryPassword = this.generateTemporaryPassword();
     const passwordHash = await bcrypt.hash(temporaryPassword, 10);
+    const defaultFullName = dto.email.split('@')[0];
 
     const newMember = await this.prisma.user.create({
       data: {
-        fullName: dto.fullName,
+        fullName: defaultFullName,
         email: dto.email,
         passwordHash,
         status: 'active',
@@ -127,7 +128,7 @@ export class MembersService {
     await this.emailService.sendBrandedEmail(
       dto.email,
       'You have been invited to join Aian',
-      `<h2>Welcome to Aian, ${dto.fullName}!</h2>
+      `<h2>Welcome to Aian, ${defaultFullName}!</h2>
        <p>You've been invited to join an organization on Aian.</p>
        <p><strong>Email:</strong> ${dto.email}</p>
        <p><strong>Temporary Password:</strong> ${temporaryPassword}</p>
