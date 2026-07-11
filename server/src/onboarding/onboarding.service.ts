@@ -5,6 +5,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateOrganizationDto } from './dto/create-organization.dto';
 import { EyeStatus } from '@prisma/client';
+import { HttpException, HttpStatus } from '@nestjs/common';
 
 @Injectable()
 export class OnboardingService {
@@ -20,9 +21,22 @@ export class OnboardingService {
         },
       });
 
+      const ownerRole = await tx.role.findFirst({
+        where: { key: 'owner', organizationId: null },
+      });
+
+      if (!ownerRole) {
+        throw new Error('Owner role not found. Please check seed data.');
+      }
+
       await tx.user.update({
         where: { id: userId },
-        data: { organizationId: org.id },
+        data: {
+          organizationId: org.id,
+          roleId: ownerRole.id,
+          memberStatus: 'active',
+          joinedAt: new Date(),
+        },
       });
 
       const eyeTypes = await tx.eyeType.findMany();
@@ -54,17 +68,14 @@ export class OnboardingService {
   }
 
   async updateProviders(
-    userId: string,
+    organizationId: string, 
     providers: { eyeType: string; providerKey: string }[],
   ) {
-    const org = await this.prisma.organization.findFirst({
-      where: { createdByUserId: userId },
-      orderBy: { createdAt: 'desc' },
-    });
-
-    if (!org) throw new Error('Organization not found.');
-
     return await this.prisma.$transaction(async (tx) => {
+      const progress = await tx.onboardingProgress.findUnique({
+        where: { organizationId },
+      });
+
       const updatedEyes = [];
 
       for (const item of providers) {
@@ -77,17 +88,27 @@ export class OnboardingService {
         });
 
         if (!validMapping || !validMapping.isAvailableInV1) {
-          throw {
-            code: 'VALIDATION_ERROR',
-            field: `providers[${providers.indexOf(item)}].providerKey`,
-            message: `${item.providerKey} is not available for the ${item.eyeType} Eye in V1.`,
-          };
+          throw new HttpException(
+            {
+              success: false,
+              message: 'One or more selected providers are not available.',
+              error: {
+                code: 'VALIDATION_ERROR',
+                fields: {
+                  [`providers[${providers.indexOf(item)}].providerKey`]: [
+                    `${item.providerKey} is not available for the ${item.eyeType} Eye in V1.`,
+                  ],
+                },
+              },
+            },
+            HttpStatus.UNPROCESSABLE_ENTITY,
+          );
         }
 
         const eye = await tx.organizationEye.update({
           where: {
             organizationId_eyeTypeId: {
-              organizationId: org.id,
+              organizationId,
               eyeTypeId: validMapping.eyeTypeId,
             },
           },
@@ -105,35 +126,35 @@ export class OnboardingService {
         updatedEyes.push(eye);
       }
 
+      await tx.onboardingProgress.update({
+        where: { organizationId },
+        data: {
+          currentStep: 'dashboard',
+          completedSteps: {
+            ...((progress?.completedSteps as object) || {}),
+            providers_selected: true,
+          },
+        },
+      });
+
       return updatedEyes;
     });
   }
 
-  async getProgress(userId: string) {
-  const org = await this.prisma.organization.findFirst({
-    where: { createdByUserId: userId }
-  });
-  
-  if (!org) throw new Error("Organization not found.");
-
-  return await this.prisma.onboardingProgress.findUnique({
-    where: { organizationId: org.id }
-  });
+  async getProgress(organizationId: string) { 
+    return await this.prisma.onboardingProgress.findUnique({
+      where: { organizationId },
+    });
   }
 
-  async completeOnboarding(userId: string) {
-  const org = await this.prisma.organization.findFirst({
-    where: { createdByUserId: userId }
-  });
-
-  if (!org) throw new Error("Organization not found.");
-
-  return await this.prisma.onboardingProgress.update({
-    where: { organizationId: org.id },
-    data: { 
-      isCompleted: true,
-      currentStep: 'dashboard' 
-    }
-  });
-}
+  async completeOnboarding(organizationId: string) { 
+    return await this.prisma.onboardingProgress.update({
+      where: { organizationId },
+      data: {
+        isCompleted: true,
+        currentStep: 'dashboard',
+        completedAt: new Date(),
+      },
+    });
+  }
 }
