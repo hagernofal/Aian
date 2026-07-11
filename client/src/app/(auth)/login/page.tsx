@@ -34,7 +34,7 @@ export default function LoginPage() {
       
       loginStore(response.data.user, response.data.access_token, response.data.refresh_token);
       //console.log("Login successful:", response.data);
-      router.push("/workspaces");
+      router.push("/payment");
     } catch (err: any) {
       setErrorMsg(err.response?.data?.message || "Invalid email or password");
     } finally {

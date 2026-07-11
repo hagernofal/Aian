@@ -27,6 +27,7 @@ export const authApi = {
 
   refresh: async (userId: string, refreshToken: string): Promise<RefreshResponse> => {
     const response = await api.post("/auth/refresh", { userId, refreshToken });
+    console.log("Refresh response:", response.data); // Log the response data
     return response.data;
   },
 
