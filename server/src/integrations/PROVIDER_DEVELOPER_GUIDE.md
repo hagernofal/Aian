@@ -1,121 +1,189 @@
-# Provider Developer Guide
+# Sprint 2 Ingestion Pipeline: Provider Developer Guide
 
-Welcome! This guide explains how to build a new integration (e.g., Slack, GitHub, Jira) using the shared Sprint 2 ingestion pipeline.
+Welcome to the **Aian Global Ingestion Pipeline** documentation. 
 
-Our goal with this architecture is to **separate generic ingestion logic from provider-specific logic**. You, the provider developer, only need to write the code that understands your specific provider's API. The core system handles the rest (database storage, encryption, webhooks, batching, idempotency, etc.).
-
-## Table of Contents
-1. [Overview](#overview)
-2. [Step 1: Implement `ProviderClient`](#step-1-implement-providerclient)
-3. [Step 2: Implement `ProviderAdapter`](#step-2-implement-provideradapter)
-4. [Step 3: Handle Webhooks (Optional)](#step-3-handle-webhooks-optional)
-5. [Step 4: Register in `ProviderClientFactory`](#step-4-register-in-providerclientfactory)
-6. [Step 5: Create your Module](#step-5-create-your-module)
+This guide is a comprehensive reference manual for developers and AI assistants building Provider Integrations (e.g., **Slack, Zoom, Jira, GitHub**). The ingestion pipeline provides generic infrastructure for database storage, webhooks, and AI batching, allowing you to focus entirely on the provider's specific API logic.
 
 ---
 
-## Overview
+## 1. Provider Module Architecture
 
-When building a provider, you will implement **contracts** defined in `src/integrations/contracts/`.
+When building a new provider (e.g., Jira), you will create a standalone NestJS module (`JiraModule`). Your module must implement specific interfaces (Contracts) and register them with the Global Pipeline.
 
-- **`ProviderClient`**: Handles OAuth connection lifecycle, health checks, and fetching resources (like Slack channels).
-- **`ProviderAdapter`**: Transforms raw API payloads from your provider into our unified `KnowledgeItem` shape.
-- **`WebhookSignatureValidator`**: Validates webhook HMAC signatures.
-
-You do **not** need to manually store items in the database. You return them from your adapter, and the `BaseCollectorService` handles idempotency and storage.
+A complete provider module contains:
+1. **OAuth Controller**: Handles redirects and token generation.
+2. **Provider Client**: Handles API calls (health checks, fetching resources).
+3. **Provider Adapter**: Normalizes raw provider payloads into standardized `KnowledgeItem`s.
+4. **Webhook Validator**: Verifies the authenticity of incoming provider webhooks.
 
 ---
 
-## Step 1: Implement `ProviderClient`
+## 2. Global Services to Use (Do NOT write your own Prisma queries for core models)
 
-Create a service that implements the `ProviderClient` interface.
+You must inject and use the shared global services. This ensures security and standardization across all integrations.
 
+### `ProviderConnectionRepository`
+Manages OAuth connections.
+```typescript
+import { ProviderConnectionRepository } from '../../ingestion/repositories/provider-connection.repository';
+
+// Example: Creating a new connection after OAuth
+const connection = await this.connectionRepo.create({
+  organizationEyeId: 'eye-uuid-here',
+  providerId: Provider.JIRA,
+  status: 'connected',
+  accessTokenEncrypted: 'encrypted-token-here',
+  scopes: ['read:jira-work', 'read:jira-user'],
+});
+```
+
+### `EncryptionService`
+Used to encrypt tokens before saving them.
+```typescript
+import { EncryptionService } from '../../common/encryption.service';
+
+const encrypted = this.encryptionService.encrypt(rawAccessToken);
+const decrypted = this.encryptionService.decrypt(connection.accessTokenEncrypted);
+```
+
+---
+
+## 3. Integration Roadmap (Step-by-Step with Examples)
+
+When building a new provider, follow these exact steps:
+
+### Step 1: Enums and Seeding
+Ensure your provider is listed in `src/integrations/contracts/provider.enum.ts` (e.g., `Provider.JIRA`) and is seeded into the database in `prisma/seed.ts`.
+
+---
+
+### Step 2: The OAuth Flow Controller
+The pipeline provides a generic webhook endpoint, but **OAuth is provider-specific**. Create `<provider>-auth.controller.ts`.
+
+**Example: Jira Auth Controller**
+```typescript
+import { Controller, Get, Query, Res } from '@nestjs/common';
+import { ProviderConnectionRepository } from '../../ingestion/repositories/provider-connection.repository';
+import { EncryptionService } from '../../common/encryption.service';
+import { Provider } from '../contracts';
+
+@Controller('integrations/jira')
+export class JiraAuthController {
+  constructor(
+    private readonly connectionRepo: ProviderConnectionRepository,
+    private readonly encryptionService: EncryptionService,
+  ) {}
+
+  @Get('install')
+  install(@Query('organizationEyeId') eyeId: string, @Res() res) {
+    // 1. Construct Provider OAuth URL
+    const url = `https://auth.atlassian.com/authorize?client_id=XYZ&scope=read:jira-work&state=${eyeId}`;
+    return res.redirect(url);
+  }
+
+  @Get('callback')
+  async callback(@Query('code') code: string, @Query('state') state: string, @Res() res) {
+    // 2. Exchange code for access token via Jira API
+    const accessToken = await exchangeCodeForToken(code); 
+    
+    // 3. Encrypt and save using global services
+    await this.connectionRepo.create({
+      organizationEyeId: state,
+      providerId: Provider.JIRA,
+      status: 'connected',
+      accessTokenEncrypted: this.encryptionService.encrypt(accessToken),
+      scopes: ['read:jira-work'],
+    });
+
+    return res.send('Successfully connected to Jira!');
+  }
+}
+```
+
+---
+
+### Step 3: Implement Client & Adapter
+Create `<provider>-client.service.ts` (implements `ProviderClient`) and `<provider>-adapter.service.ts` (implements `ProviderAdapter`).
+
+**Example: GitHub Client (Fetching Resources & Health)**
 ```typescript
 import { Injectable } from '@nestjs/common';
-import { 
-  ProviderClient, 
-  ProviderConnection, 
-  ConnectionVerificationResult, 
-  ProviderResource 
-} from '../contracts';
+import { ProviderClient, ProviderConnection, ProviderResource } from '../contracts';
+import { EncryptionService } from '../../common/encryption.service';
 
 @Injectable()
-export class SlackClientService implements ProviderClient {
-  
-  async verifyConnection(connection: ProviderConnection): Promise<ConnectionVerificationResult> {
-    // 1. Decrypt token using EncryptionService (if needed directly, or just use the one passed in)
-    // 2. Call Slack API auth.test
-    // 3. Return { isValid: true, message: 'Connected to Workspace XYZ' }
+export class GithubClientService implements ProviderClient {
+  constructor(private readonly encryptionService: EncryptionService) {}
+
+  async verifyConnection(connection: ProviderConnection) {
+    // Decrypt token and call GitHub user API to verify health
+    const token = this.encryptionService.decrypt(connection.accessTokenEncrypted);
+    return { isValid: true, message: 'Connected' };
   }
 
   async getResources(connection: ProviderConnection): Promise<ProviderResource[]> {
-    // 1. Call Slack API conversations.list
-    // 2. Map channels to ProviderResource[]
-  }
-
-  async refreshCredentials(connection: ProviderConnection) {
-    // Optional: Implement if your provider uses rotating refresh tokens.
+    // Call GitHub API to list repositories the user can access
+    return [
+      {
+        externalResourceId: 'repo_789',
+        name: 'acme/frontend-app',
+        resourceType: 'repository',
+        metadata: { private: true },
+      }
+    ];
   }
 }
 ```
 
----
-
-## Step 2: Implement `ProviderAdapter`
-
-The adapter takes raw payloads (from webhooks or polling) and turns them into `KnowledgeItem`s. It must be stateless.
-
+**Example: Zoom Adapter (Normalizing Raw Data)**
 ```typescript
 import { Injectable } from '@nestjs/common';
 import { ProviderAdapter, ProviderEventInput, KnowledgeItem } from '../contracts';
-import { createHash } from 'crypto';
 
 @Injectable()
-export class SlackAdapterService implements ProviderAdapter {
+export class ZoomAdapterService implements ProviderAdapter {
   
   normalizeEvent(input: ProviderEventInput): KnowledgeItem[] {
-    const payload = input.rawPayload as any;
+    const event = input.rawPayload as any;
     
-    // Convert Slack message to KnowledgeItem
-    return [{
-      id: undefined as any, // Generated by DB
-      organizationId: input.organizationId,
-      eyeType: 'slack',
-      provider: 'slack',
-      sourceType: 'channel_message',
-      eventType: payload.type,
-      externalResourceId: payload.channel,
-      externalEventId: payload.ts,
-      content: payload.text,
-      occurredAt: new Date(parseFloat(payload.ts) * 1000),
-      receivedAt: new Date(),
-      visibility: 'ORGANIZATION',
-      rawPayloadReference: input.rawEventReference,
-      // ... fill in author, participants, metadata
-    }];
+    if (event.event === 'meeting.transcript_completed') {
+      return [{
+        id: undefined as any, // Generated by DB
+        organizationId: input.organizationId,
+        eyeType: 'meeting' as any,
+        provider: 'zoom' as any,
+        sourceType: 'meeting_transcript',
+        eventType: 'transcript_completed',
+        externalResourceId: event.payload.object.id,
+        externalEventId: event.payload.object.uuid,
+        content: "Transcript text downloaded via API...",
+        occurredAt: new Date(event.event_ts),
+        visibility: 'ORGANIZATION',
+        rawPayloadReference: input.rawEventReference,
+        metadata: { host_id: event.payload.object.host_id },
+        version: null,
+      } as KnowledgeItem];
+    }
+    return []; // Ignore unhandled events
   }
 
   getIdempotencyKey(item: KnowledgeItem): string {
-    // Must be globally unique to prevent duplicate storage
-    return `slack:${item.organizationId}:${item.externalResourceId}:${item.externalEventId}`;
+    // Guarantees we never process the same transcript twice
+    return `zoom:${item.organizationId}:${item.externalEventId}:transcript`;
   }
 
-  getExternalResourceId(input: ProviderEventInput): string {
-    return (input.rawPayload as any).channel;
-  }
-
-  getExternalEventId(input: ProviderEventInput): string | null {
-    return (input.rawPayload as any).ts || null;
-  }
+  // Extractors for logging/routing
+  getExternalResourceId(input: ProviderEventInput) { return input.rawPayload?.payload?.object?.id || 'unknown'; }
+  getExternalEventId(input: ProviderEventInput) { return input.rawPayload?.payload?.object?.uuid || null; }
 }
 ```
 
 ---
 
-## Step 3: Handle Webhooks (Optional)
+### Step 4: Implement Webhook Validator
+Create `<provider>-webhook.validator.ts`. The global pipeline exposes `POST /api/v1/webhooks/<CONNECTION_ID>`. You must validate the provider's signature.
 
-If your provider pushes data via webhooks, implement `WebhookSignatureValidator`.
-
+**Example: Slack Webhook Validator**
 ```typescript
 import { Injectable } from '@nestjs/common';
 import { WebhookSignatureValidator } from '../../ingestion/collection/webhooks/webhook-signature-validator.interface';
@@ -128,65 +196,50 @@ export class SlackWebhookValidator implements WebhookSignatureValidator {
     const signature = req.headers['x-slack-signature'] as string;
     const timestamp = req.headers['x-slack-request-timestamp'] as string;
     
+    // Calculate the HMAC using the connection's webhook secret
     const sigBasestring = `v0:${timestamp}:${rawBody.toString('utf8')}`;
-    const mySignature = 'v0=' + crypto.createHmac('sha256', secret).update(sigBasestring).digest('hex');
+    const expected = 'v0=' + crypto.createHmac('sha256', secret).update(sigBasestring).digest('hex');
     
-    return crypto.timingSafeEqual(Buffer.from(mySignature), Buffer.from(signature));
+    return crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(signature));
   }
 }
 ```
 
-**Webhook URL Configuration**:
-Your webhook URL in the provider console should be:
-`https://your-domain.com/api/v1/webhooks/<CONNECTION_ID>`
-
 ---
 
-## Step 4: Register in `ProviderClientFactory`
+### Step 5: Module Registration
+Create `<provider>.module.ts`. You must register your components dynamically in the factory during the `onModuleInit` lifecycle hook.
 
-Update `src/integrations/provider-client.factory.ts` to return your classes.
-
-```typescript
-  getClient(providerId: string): ProviderClient {
-    if (providerId === Provider.slack) {
-      return this.slackClient; // Injected via constructor
-    }
-    throw new Error(`Provider Client for ${providerId} not implemented`);
-  }
-```
-
----
-
-## Step 5: Create your Module
-
-Wire everything up in `src/integrations/slack/slack.module.ts`.
-
+**Example: Slack Module Registration**
 ```typescript
 import { Module, OnModuleInit } from '@nestjs/common';
-import { WebhookSignatureValidatorFactory } from '../../ingestion/collection/webhooks/webhook-signature-validator.factory';
+import { SlackClientService } from './slack-client.service';
+import { SlackAdapterService } from './slack-adapter.service';
 import { SlackWebhookValidator } from './slack-webhook.validator';
+import { SlackAuthController } from './slack-auth.controller';
+import { WebhookSignatureValidatorFactory } from '../../ingestion/collection/webhooks/webhook-signature-validator.factory';
+import { ProviderClientFactory } from '../provider-client.factory';
+import { Provider } from '../contracts';
 
 @Module({
-  providers: [
-    SlackClientService,
-    SlackAdapterService,
-    SlackWebhookValidator,
-  ],
-  exports: [SlackClientService, SlackAdapterService] // Export for the Factory!
+  controllers: [SlackAuthController],
+  providers: [SlackClientService, SlackAdapterService, SlackWebhookValidator],
 })
 export class SlackModule implements OnModuleInit {
   constructor(
+    private readonly clientFactory: ProviderClientFactory,
     private readonly validatorFactory: WebhookSignatureValidatorFactory,
+    private readonly slackClient: SlackClientService,
+    private readonly slackAdapter: SlackAdapterService,
     private readonly slackValidator: SlackWebhookValidator,
   ) {}
 
   onModuleInit() {
-    // Register your webhook signature validator on boot
-    this.validatorFactory.registerValidator('slack', this.slackValidator);
+    // Inject your specific instances into the global pipeline
+    this.clientFactory.registerClient(Provider.SLACK, this.slackClient);
+    this.clientFactory.registerAdapter(Provider.SLACK, this.slackAdapter);
+    this.validatorFactory.registerValidator(Provider.SLACK, this.slackValidator);
   }
 }
 ```
-
-## Need Database Access?
-Do NOT create your own Prisma service or repositories for shared concepts. 
-Inject repositories from the `IngestionModule` (e.g. `ProviderConnectionRepository`). The `IngestionModule` is `@Global()`, so they are available automatically!
+*Note: Don't forget to import your new module into `src/integrations/integrations.module.ts`!*

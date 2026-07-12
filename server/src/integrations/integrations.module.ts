@@ -10,6 +10,7 @@ import { ProviderClientFactory } from './provider-client.factory';
  */
 @Global()
 @Module({
+  imports: [],
   providers: [ProviderClientFactory],
   exports: [ProviderClientFactory],
 })
