@@ -1,4 +1,11 @@
-import { Controller, Get, Query, Res, Logger, BadRequestException } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Query,
+  Res,
+  Logger,
+  BadRequestException,
+} from '@nestjs/common';
 import * as express from 'express';
 import axios from 'axios';
 import { ProviderConnectionRepository } from '../../ingestion/repositories/provider-connection.repository';
@@ -39,7 +46,9 @@ export class SlackAuthController {
     @Res() res: express.Response,
   ) {
     if (!organizationEyeId) {
-      throw new BadRequestException('Missing organizationEyeId query parameter');
+      throw new BadRequestException(
+        'Missing organizationEyeId query parameter',
+      );
     }
 
     if (!this.clientId) {
@@ -87,7 +96,9 @@ export class SlackAuthController {
     });
 
     if (!eye) {
-      throw new BadRequestException(`OrganizationEye ${organizationEyeId} not found`);
+      throw new BadRequestException(
+        `OrganizationEye ${organizationEyeId} not found`,
+      );
     }
 
     // Look up the Slack provider record to get its DB UUID
@@ -96,7 +107,9 @@ export class SlackAuthController {
     });
 
     if (!slackProvider) {
-      throw new BadRequestException('Slack provider not found in database. Did you run the seed?');
+      throw new BadRequestException(
+        'Slack provider not found in database. Did you run the seed?',
+      );
     }
 
     try {
@@ -118,7 +131,9 @@ export class SlackAuthController {
 
       if (!data.ok) {
         this.logger.error(`Slack token exchange failed: ${data.error}`);
-        throw new BadRequestException(`Slack token exchange failed: ${data.error}`);
+        throw new BadRequestException(
+          `Slack token exchange failed: ${data.error}`,
+        );
       }
 
       /*
@@ -183,7 +198,10 @@ export class SlackAuthController {
         },
       };
     } catch (err) {
-      this.logger.error(`Slack OAuth error: ${(err as Error).message}`, (err as Error).stack);
+      this.logger.error(
+        `Slack OAuth error: ${(err as Error).message}`,
+        (err as Error).stack,
+      );
       throw new BadRequestException('Failed to complete Slack OAuth flow');
     }
   }

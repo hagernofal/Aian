@@ -16,12 +16,18 @@ export class EyesController {
     if (!organizationId) {
       return [];
     }
-    const connections = await this.connectionRepo.findByOrganizationId(organizationId);
-    
+    const connections =
+      await this.connectionRepo.findByOrganizationId(organizationId);
+
     // Omit sensitive data like tokens before returning to client
     return connections.map((conn: any) => {
       const mapped = this.connectionRepo.mapToInterface(conn);
-      const { accessTokenEncrypted, refreshTokenEncrypted, webhookSecret, ...safeConn } = mapped as any;
+      const {
+        accessTokenEncrypted,
+        refreshTokenEncrypted,
+        webhookSecret,
+        ...safeConn
+      } = mapped as any;
       return safeConn;
     });
   }
@@ -53,6 +59,9 @@ export class EyesController {
       data: { status: 'disconnected' },
     });
 
-    return { success: true, message: 'Connection revoked and disconnected successfully' };
+    return {
+      success: true,
+      message: 'Connection revoked and disconnected successfully',
+    };
   }
 }

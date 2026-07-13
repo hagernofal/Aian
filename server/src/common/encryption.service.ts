@@ -25,7 +25,7 @@ export class EncryptionService {
     if (!hexKey || hexKey.length !== 64) {
       throw new Error(
         'ENCRYPTION_KEY must be a 64-character hex string (32 bytes). ' +
-          'Generate one with: node -e "console.log(require(\'crypto\').randomBytes(32).toString(\'hex\'))"',
+          "Generate one with: node -e \"console.log(require('crypto').randomBytes(32).toString('hex'))\"",
       );
     }
     this.key = Buffer.from(hexKey, 'hex');
@@ -54,7 +54,9 @@ export class EncryptionService {
   decrypt(encryptedData: string): string {
     const parts = encryptedData.split(':');
     if (parts.length !== 3) {
-      throw new Error('Invalid encrypted data format. Expected iv:authTag:ciphertext');
+      throw new Error(
+        'Invalid encrypted data format. Expected iv:authTag:ciphertext',
+      );
     }
 
     const [ivHex, authTagHex, ciphertext] = parts;

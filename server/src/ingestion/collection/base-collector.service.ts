@@ -52,9 +52,10 @@ export class BaseCollectorService {
       // 4. Save items with idempotency check
       for (const item of normalizedItems) {
         const idempotencyKey = adapter.getIdempotencyKey(item);
-        
-        const exists = await this.knowledgeItemRepo.existsByIdempotencyKey(idempotencyKey);
-        
+
+        const exists =
+          await this.knowledgeItemRepo.existsByIdempotencyKey(idempotencyKey);
+
         if (exists) {
           itemsIgnored++;
           continue;
@@ -64,8 +65,12 @@ export class BaseCollectorService {
         const itemToStore = {
           ...item,
           author: item.author ? JSON.parse(JSON.stringify(item.author)) : null,
-          participants: item.participants ? JSON.parse(JSON.stringify(item.participants)) : [],
-          metadata: item.metadata ? JSON.parse(JSON.stringify(item.metadata)) : {},
+          participants: item.participants
+            ? JSON.parse(JSON.stringify(item.participants))
+            : [],
+          metadata: item.metadata
+            ? JSON.parse(JSON.stringify(item.metadata))
+            : {},
           idempotencyKey,
           ingestionStatus: 'pending' as const, // Ready for batching
         };
@@ -82,17 +87,21 @@ export class BaseCollectorService {
         itemsIgnored,
       });
 
-      this.logger.log(`Completed collection run ${run.id}: ${itemsStored} stored, ${itemsIgnored} ignored.`);
-
+      this.logger.log(
+        `Completed collection run ${run.id}: ${itemsStored} stored, ${itemsIgnored} ignored.`,
+      );
     } catch (error) {
-      this.logger.error(`Failed collection run ${run.id}: ${(error as Error).message}`, (error as Error).stack);
-      
+      this.logger.error(
+        `Failed collection run ${run.id}: ${(error as Error).message}`,
+        (error as Error).stack,
+      );
+
       await this.collectionRunRepo.markFailed(
         run.id,
         'PROCESSING_ERROR',
         (error as Error).message,
       );
-      
+
       throw error;
     }
   }

@@ -8,7 +8,7 @@ export class ProcessingSettingsController {
   @Get()
   async getSettings(@Param('organizationId') organizationId: string) {
     let settings = await this.settingsRepo.findByOrganizationId(organizationId);
-    
+
     // Return default settings if none exist yet
     if (!settings) {
       settings = {
@@ -22,14 +22,15 @@ export class ProcessingSettingsController {
         updatedAt: new Date(),
       };
     }
-    
+
     return settings;
   }
 
   @Put()
   async updateSettings(
     @Param('organizationId') organizationId: string,
-    @Body() body: {
+    @Body()
+    body: {
       timeIntervalHours?: number;
       pendingItemThreshold?: number;
       retentionDays?: number;

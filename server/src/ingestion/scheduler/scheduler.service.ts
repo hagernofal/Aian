@@ -19,16 +19,20 @@ export class SchedulerService {
   @Cron(CronExpression.EVERY_MINUTE)
   async handleAutoBatching() {
     this.logger.debug('Running auto-batching check...');
-    
+
     // 1. Get all organizations that have auto-processing enabled
-    const activeSettings = await this.prisma.organizationProcessingSettings.findMany({
-      where: { isAutoProcessingEnabled: true },
-      select: { organizationId: true },
-    });
+    const activeSettings =
+      await this.prisma.organizationProcessingSettings.findMany({
+        where: { isAutoProcessingEnabled: true },
+        select: { organizationId: true },
+      });
 
     // 2. Process batches for each organization
     for (const setting of activeSettings) {
-      await this.batchService.processOrganizationBatches(setting.organizationId, false);
+      await this.batchService.processOrganizationBatches(
+        setting.organizationId,
+        false,
+      );
     }
   }
 

@@ -27,7 +27,7 @@ export class BatchesController {
     const batch = await this.prisma.ingestionBatch.findUnique({
       where: { id },
     });
-    
+
     const itemsCount = await this.prisma.ingestionBatchItem.count({
       where: { batchId: id },
     });

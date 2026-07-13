@@ -32,7 +32,7 @@ import { ProcessorModule } from './processor/processor.module';
       serveRoot: '/uploads',
     }),
     JwtModule.register({
-      global:true
+      global: true,
     }),
     PrismaModule,
     IntegrationsModule,

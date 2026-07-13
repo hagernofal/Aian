@@ -20,8 +20,12 @@ export class BatchService {
    * Processes pending items for an organization.
    * Creates a batch if there are pending items and the criteria are met (or forced).
    */
-  async processOrganizationBatches(organizationId: string, force: boolean = false) {
-    const settings = await this.settingsRepo.findByOrganizationId(organizationId);
+  async processOrganizationBatches(
+    organizationId: string,
+    force: boolean = false,
+  ) {
+    const settings =
+      await this.settingsRepo.findByOrganizationId(organizationId);
     if (!settings && !force) {
       return; // No settings, auto-processing disabled by default unless forced
     }
@@ -30,13 +34,14 @@ export class BatchService {
       return; // Auto-processing disabled
     }
 
-    const pendingCount = await this.knowledgeItemRepo.countPendingByOrganization(organizationId);
+    const pendingCount =
+      await this.knowledgeItemRepo.countPendingByOrganization(organizationId);
     if (pendingCount === 0) {
       return; // Nothing to do
     }
 
     const threshold = settings?.pendingItemThreshold ?? 100;
-    
+
     // In a real app, we'd also check if timeIntervalHours has passed since the last batch.
     // For simplicity in this demo, we'll batch if we hit the threshold or if forced.
     const shouldBatch = force || pendingCount >= threshold;
@@ -45,15 +50,21 @@ export class BatchService {
       return;
     }
 
-    this.logger.log(`Creating batch for org ${organizationId}. Pending items: ${pendingCount}`);
+    this.logger.log(
+      `Creating batch for org ${organizationId}. Pending items: ${pendingCount}`,
+    );
 
     try {
       // 1. Create the batch record
-      const batch = await this.batchRepo.create(organizationId, force ? 'manual' : 'auto');
+      const batch = await this.batchRepo.create(
+        organizationId,
+        force ? 'manual' : 'auto',
+      );
 
       // 2. Fetch pending items
-      const pendingItems = await this.knowledgeItemRepo.findPendingByOrganization(organizationId);
-      const itemIds = pendingItems.map(i => i.id);
+      const pendingItems =
+        await this.knowledgeItemRepo.findPendingByOrganization(organizationId);
+      const itemIds = pendingItems.map((i) => i.id);
 
       // 3. Lock the items to prevent double processing
       await this.knowledgeItemRepo.lockItems(itemIds);
@@ -66,19 +77,24 @@ export class BatchService {
 
       // 6. Hand off to processor
       const handoffResult = await this.processorGateway.handoffBatch(batch.id);
-      
+
       if (handoffResult.accepted) {
         await this.batchRepo.markHandedOff(batch.id);
         await this.knowledgeItemRepo.markHandedOff(itemIds);
-        this.logger.log(`Batch ${batch.id} handed off with ${itemIds.length} items. Job ID: ${handoffResult.processorJobId}`);
+        this.logger.log(
+          `Batch ${batch.id} handed off with ${itemIds.length} items. Job ID: ${handoffResult.processorJobId}`,
+        );
       } else {
         await this.batchRepo.markFailed(batch.id, handoffResult.message);
         await this.knowledgeItemRepo.unlockItems(itemIds); // Unlock so they can be tried again
-        this.logger.error(`Processor rejected batch ${batch.id}: ${handoffResult.message}`);
+        this.logger.error(
+          `Processor rejected batch ${batch.id}: ${handoffResult.message}`,
+        );
       }
-      
     } catch (error) {
-      this.logger.error(`Failed to process batches for org ${organizationId}: ${(error as Error).message}`);
+      this.logger.error(
+        `Failed to process batches for org ${organizationId}: ${(error as Error).message}`,
+      );
     }
   }
 }

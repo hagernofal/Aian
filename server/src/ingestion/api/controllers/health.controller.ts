@@ -1,4 +1,10 @@
-import { Controller, Get, Param, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Param,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { ProviderConnectionRepository } from '../../repositories/provider-connection.repository';
 import { ProviderClientFactory } from '../../../integrations/provider-client.factory';
 
@@ -15,12 +21,15 @@ export class HealthController {
     if (!connection) throw new NotFoundException('Connection not found');
 
     const client = this.providerFactory.getClient(connection.provider);
-    if (!client) throw new BadRequestException(`No client implemented for ${connection.provider}`);
+    if (!client)
+      throw new BadRequestException(
+        `No client implemented for ${connection.provider}`,
+      );
 
     const result = await client.verifyConnection(connection);
-    
+
     // Optionally update connection status in DB based on result
-    
+
     return result;
   }
 }

@@ -13,7 +13,7 @@ export class SyncNowController {
   async syncNow(@Param('organizationId') organizationId: string) {
     // Force a batch creation regardless of thresholds
     await this.batchService.processOrganizationBatches(organizationId, true);
-    
+
     return {
       success: true,
       message: 'Sync triggered successfully',

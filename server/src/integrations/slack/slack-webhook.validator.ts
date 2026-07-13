@@ -15,8 +15,11 @@ import * as crypto from 'crypto';
  */
 @Injectable()
 export class SlackWebhookValidator implements WebhookSignatureValidator {
-
-  async validate(req: Request, rawBody: Buffer, secret: string): Promise<boolean> {
+  async validate(
+    req: Request,
+    rawBody: Buffer,
+    secret: string,
+  ): Promise<boolean> {
     const signature = req.headers['x-slack-signature'] as string;
     const timestamp = req.headers['x-slack-request-timestamp'] as string;
 
@@ -33,7 +36,8 @@ export class SlackWebhookValidator implements WebhookSignatureValidator {
     // Compute the expected signature
     const sigBasestring = `v0:${timestamp}:${rawBody.toString('utf8')}`;
     const expectedSignature =
-      'v0=' + crypto.createHmac('sha256', secret).update(sigBasestring).digest('hex');
+      'v0=' +
+      crypto.createHmac('sha256', secret).update(sigBasestring).digest('hex');
 
     // Use timing-safe comparison to prevent timing attacks
     try {

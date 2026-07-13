@@ -1,13 +1,13 @@
-import { 
-  Controller, 
-  UseGuards, 
-  Get, 
-  Post, 
-  Put, 
-  Body, 
-  Param, 
-  ParseUUIDPipe, 
-  Delete
+import {
+  Controller,
+  UseGuards,
+  Get,
+  Post,
+  Put,
+  Body,
+  Param,
+  ParseUUIDPipe,
+  Delete,
 } from '@nestjs/common';
 import { RolesPermissionsService } from './roles_permissions.service';
 import { CurrentUser } from '../decorators/current-user.decorator';
@@ -20,7 +20,9 @@ import { RequiredPermissions } from '../decorators/required-permissions.decorato
 @UseGuards(AuthGaurd, RolesGuards)
 @Controller('roles-permissions')
 export class RolesPermissionsController {
-  constructor(private readonly rolesPermissionsService: RolesPermissionsService) {}
+  constructor(
+    private readonly rolesPermissionsService: RolesPermissionsService,
+  ) {}
 
   @RequiredPermissions('roles.read')
   @Get('role/:id')
@@ -33,7 +35,7 @@ export class RolesPermissionsController {
     return this.rolesPermissionsService.getPermissionById(id);
   }
 
-  @RequiredPermissions('roles.read',"organization.read")
+  @RequiredPermissions('roles.read', 'organization.read')
   @Get('organization')
   async getRolesByORG(@CurrentUser() user: any) {
     return this.rolesPermissionsService.getRolesByORG(user.organizationId);
@@ -46,7 +48,11 @@ export class RolesPermissionsController {
     @Body('roleId', ParseUUIDPipe) roleId: string,
     @Body('employeeUserId', ParseUUIDPipe) employeeUserId: string,
   ) {
-    return this.rolesPermissionsService.assignRoleToUser(roleId, user, employeeUserId);
+    return this.rolesPermissionsService.assignRoleToUser(
+      roleId,
+      user,
+      employeeUserId,
+    );
   }
 
   @RequiredPermissions('roles.create')
@@ -83,8 +89,11 @@ export class RolesPermissionsController {
   @Delete('role/:id')
   async deleteRole(
     @Param('id', ParseUUIDPipe) roleId: string,
-    @CurrentUser() user: any
+    @CurrentUser() user: any,
   ) {
-    return this.rolesPermissionsService.deleteCustomRole(roleId, user.organizationId);
+    return this.rolesPermissionsService.deleteCustomRole(
+      roleId,
+      user.organizationId,
+    );
   }
 }

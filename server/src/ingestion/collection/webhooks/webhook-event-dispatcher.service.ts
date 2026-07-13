@@ -37,7 +37,9 @@ export class WebhookEventDispatcherService {
         payload,
       });
 
-      this.logger.debug(`Stored raw webhook event for connection ${connectionId}`);
+      this.logger.debug(
+        `Stored raw webhook event for connection ${connectionId}`,
+      );
 
       // 2. Format input for BaseCollectorService
       const eventInput: ProviderEventInput = {
@@ -53,11 +55,13 @@ export class WebhookEventDispatcherService {
         organizationEyeId,
         'webhook', // CollectionMethod.webhook
         eventInput,
-        connectionId
+        connectionId,
       );
-
     } catch (error) {
-      this.logger.error(`Error dispatching webhook event: ${(error as Error).message}`, (error as Error).stack);
+      this.logger.error(
+        `Error dispatching webhook event: ${(error as Error).message}`,
+        (error as Error).stack,
+      );
       throw error;
     }
   }

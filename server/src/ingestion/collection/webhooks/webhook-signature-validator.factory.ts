@@ -12,7 +12,9 @@ export class WebhookSignatureValidatorFactory {
 
   registerValidator(providerId: string, validator: WebhookSignatureValidator) {
     if (this.validators.has(providerId)) {
-      this.logger.warn(`Overwriting WebhookSignatureValidator for ${providerId}`);
+      this.logger.warn(
+        `Overwriting WebhookSignatureValidator for ${providerId}`,
+      );
     }
     this.validators.set(providerId, validator);
     this.logger.log(`Registered WebhookSignatureValidator for ${providerId}`);
@@ -21,7 +23,9 @@ export class WebhookSignatureValidatorFactory {
   getValidator(providerId: string): WebhookSignatureValidator {
     const validator = this.validators.get(providerId);
     if (!validator) {
-      throw new Error(`No signature validator registered for provider: ${providerId}`);
+      throw new Error(
+        `No signature validator registered for provider: ${providerId}`,
+      );
     }
     return validator;
   }

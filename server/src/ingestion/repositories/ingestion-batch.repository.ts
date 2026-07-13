@@ -22,7 +22,10 @@ export class IngestionBatchRepository {
     });
   }
 
-  async findByOrganization(organizationId: string, options?: { take?: number }) {
+  async findByOrganization(
+    organizationId: string,
+    options?: { take?: number },
+  ) {
     return this.prisma.ingestionBatch.findMany({
       where: { organizationId },
       orderBy: { createdAt: 'desc' },

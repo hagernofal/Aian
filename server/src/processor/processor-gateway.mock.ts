@@ -6,7 +6,7 @@ import {
 
 /**
  * Mock Knowledge Processor Gateway for Sprint 2.
- * 
+ *
  * In Sprint 2, we just collect data into batches.
  * In Sprint 3, this will be replaced with a real implementation that sends
  * data to the NLP processing queue (cleaning, chunking, embeddings).
@@ -17,7 +17,7 @@ export class MockProcessorGateway implements KnowledgeProcessorGateway {
 
   async handoffBatch(batchId: string): Promise<ProcessorHandoffResult> {
     this.logger.log(`[STUB] Handed off batch ${batchId} to Processor.`);
-    
+
     // Simulating a successful handoff to a background queue
     return {
       accepted: true,

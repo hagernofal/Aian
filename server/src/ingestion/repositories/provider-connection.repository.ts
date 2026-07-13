@@ -58,7 +58,10 @@ export class ProviderConnectionRepository {
     return this.prisma.providerConnection.create({ data });
   }
 
-  async update(id: string, data: Prisma.ProviderConnectionUncheckedUpdateInput) {
+  async update(
+    id: string,
+    data: Prisma.ProviderConnectionUncheckedUpdateInput,
+  ) {
     return this.prisma.providerConnection.update({ where: { id }, data });
   }
 

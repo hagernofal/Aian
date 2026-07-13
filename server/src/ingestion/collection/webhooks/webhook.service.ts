@@ -1,4 +1,10 @@
-import { Injectable, Logger, UnauthorizedException, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  UnauthorizedException,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { Request } from 'express';
 import { ProviderConnectionRepository } from '../../repositories/provider-connection.repository';
 import { EncryptionService } from '../../../common/encryption.service';
@@ -18,7 +24,7 @@ export class WebhookService {
 
   /**
    * Handles an incoming webhook request from a provider.
-   * 
+   *
    * @param connectionId The specific connection ID from the webhook URL path
    * @param req The Express request object containing headers and raw body
    */
@@ -30,7 +36,9 @@ export class WebhookService {
     }
 
     if (!connection.webhookSecret) {
-      throw new BadRequestException('No webhook secret configured for this connection');
+      throw new BadRequestException(
+        'No webhook secret configured for this connection',
+      );
     }
 
     // 2. Decrypt webhook secret
@@ -38,7 +46,7 @@ export class WebhookService {
 
     // 3. Validate signature using the provider-specific validator
     const validator = this.validatorFactory.getValidator(connection.providerId);
-    
+
     // req.rawBody is populated by NestJS because we enabled rawBody: true in main.ts
     const rawBody = (req as any).rawBody;
     if (!rawBody) {
@@ -47,20 +55,26 @@ export class WebhookService {
 
     const isValid = await validator.validate(req, rawBody, secret);
     if (!isValid) {
-      this.logger.warn(`Invalid webhook signature for connection ${connectionId}`);
+      this.logger.warn(
+        `Invalid webhook signature for connection ${connectionId}`,
+      );
       throw new UnauthorizedException('Invalid webhook signature');
     }
 
     // 4. Dispatch the verified payload for processing
     // We return immediately to the provider, processing the payload asynchronously
-    this.dispatcher.dispatch(
-      connectionId,
-      connection.providerId,
-      connection.organizationEyeId, // Using this to pass to dispatcher
-      req.body // The parsed JSON body
-    ).catch(err => {
-      this.logger.error(`Failed to dispatch webhook asynchronously: ${err.message}`);
-    });
+    this.dispatcher
+      .dispatch(
+        connectionId,
+        connection.providerId,
+        connection.organizationEyeId, // Using this to pass to dispatcher
+        req.body, // The parsed JSON body
+      )
+      .catch((err) => {
+        this.logger.error(
+          `Failed to dispatch webhook asynchronously: ${err.message}`,
+        );
+      });
 
     return { success: true };
   }

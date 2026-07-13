@@ -19,28 +19,24 @@ export class BillingController {
 
   constructor(private readonly billingService: BillingService) {}
 
-  
   @Get('plans')
   // @UseGuards(AuthGaurd)
   async getPlans() {
     return this.billingService.getPlans();
   }
 
-  
   @Get('plans/:slug')
   // @UseGuards(AuthGaurd)
   async getPlanBySlug(@Param('slug') slug: string) {
     return this.billingService.getPlanBySlug(slug);
   }
 
-  
   @Post('checkout')
   // @UseGuards(AuthGaurd)
   async checkout(@Body() dto: CheckoutDto) {
     return this.billingService.checkout(dto);
   }
 
-  
   @Post('webhook')
   async handleWebhook(@Body() payload: PaymobCallbackPayload) {
     this.logger.log('Received billing webhook');
@@ -48,12 +44,9 @@ export class BillingController {
     return { received: true };
   }
 
- 
   @Get('verify/:providerPaymentId')
   // @UseGuards(AuthGaurd)
-  async verifyPayment(
-    @Param('providerPaymentId') providerPaymentId: string,
-  ) {
+  async verifyPayment(@Param('providerPaymentId') providerPaymentId: string) {
     return this.billingService.verifyPayment(providerPaymentId);
   }
 }

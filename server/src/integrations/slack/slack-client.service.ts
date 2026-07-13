@@ -28,7 +28,9 @@ export class SlackClientService implements ProviderClient {
   async verifyConnection(
     connection: ProviderConnection,
   ): Promise<ConnectionVerificationResult> {
-    const token = this.encryptionService.decrypt(connection.accessTokenEncrypted);
+    const token = this.encryptionService.decrypt(
+      connection.accessTokenEncrypted,
+    );
 
     try {
       const response = await axios.post(
@@ -40,7 +42,9 @@ export class SlackClientService implements ProviderClient {
       );
 
       if (response.data.ok) {
-        this.logger.debug(`Slack connection verified: team=${response.data.team}`);
+        this.logger.debug(
+          `Slack connection verified: team=${response.data.team}`,
+        );
         return {
           isValid: true,
           message: `Connected to workspace: ${response.data.team}`,
@@ -54,7 +58,9 @@ export class SlackClientService implements ProviderClient {
         message: `Slack auth.test failed: ${response.data.error}`,
       };
     } catch (error) {
-      this.logger.error(`Slack verifyConnection error: ${(error as Error).message}`);
+      this.logger.error(
+        `Slack verifyConnection error: ${(error as Error).message}`,
+      );
       return {
         isValid: false,
         message: `Failed to reach Slack API: ${(error as Error).message}`,
@@ -66,8 +72,12 @@ export class SlackClientService implements ProviderClient {
    * Fetch all public channels the bot can access.
    * Maps each Slack channel to a ProviderResource.
    */
-  async getResources(connection: ProviderConnection): Promise<ProviderResource[]> {
-    const token = this.encryptionService.decrypt(connection.accessTokenEncrypted);
+  async getResources(
+    connection: ProviderConnection,
+  ): Promise<ProviderResource[]> {
+    const token = this.encryptionService.decrypt(
+      connection.accessTokenEncrypted,
+    );
     const resources: ProviderResource[] = [];
 
     let cursor: string | undefined;
@@ -79,13 +89,18 @@ export class SlackClientService implements ProviderClient {
       };
       if (cursor) params.cursor = cursor;
 
-      const response = await axios.get('https://slack.com/api/conversations.list', {
-        headers: { Authorization: `Bearer ${token}` },
-        params,
-      });
+      const response = await axios.get(
+        'https://slack.com/api/conversations.list',
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          params,
+        },
+      );
 
       if (!response.data.ok) {
-        this.logger.error(`Slack conversations.list failed: ${response.data.error}`);
+        this.logger.error(
+          `Slack conversations.list failed: ${response.data.error}`,
+        );
         throw new Error(`Slack API error: ${response.data.error}`);
       }
 
@@ -115,7 +130,9 @@ export class SlackClientService implements ProviderClient {
    * Hits the Slack API `auth.revoke` endpoint.
    */
   async revokeCredentials(connection: ProviderConnection): Promise<void> {
-    const token = this.encryptionService.decrypt(connection.accessTokenEncrypted);
+    const token = this.encryptionService.decrypt(
+      connection.accessTokenEncrypted,
+    );
 
     try {
       const response = await axios.post(
@@ -127,14 +144,20 @@ export class SlackClientService implements ProviderClient {
       );
 
       if (response.data.ok) {
-        this.logger.log(`Slack token revoked successfully for connection ${connection.id}`);
+        this.logger.log(
+          `Slack token revoked successfully for connection ${connection.id}`,
+        );
       } else {
-        this.logger.warn(`Slack token revocation failed: ${response.data.error}`);
+        this.logger.warn(
+          `Slack token revocation failed: ${response.data.error}`,
+        );
         // We log a warning but don't throw an error, since the connection might
         // already be revoked or invalid on Slack's side. We still want to delete it from DB.
       }
     } catch (error) {
-      this.logger.error(`Failed to reach Slack API for revocation: ${(error as Error).message}`);
+      this.logger.error(
+        `Failed to reach Slack API for revocation: ${(error as Error).message}`,
+      );
     }
   }
 }

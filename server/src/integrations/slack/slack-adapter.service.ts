@@ -39,7 +39,9 @@ export class SlackAdapterService implements ProviderAdapter {
 
     // Only handle 'message' events for now
     if (event.type !== 'message' || event.subtype) {
-      this.logger.debug(`Ignoring event type: ${event.type}, subtype: ${event.subtype}`);
+      this.logger.debug(
+        `Ignoring event type: ${event.type}, subtype: ${event.subtype}`,
+      );
       return [];
     }
 

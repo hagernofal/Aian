@@ -4,7 +4,7 @@ import { ProviderAdapter } from './contracts/provider-adapter.interface';
 
 /**
  * Registry and Factory for all provider clients and adapters.
- * 
+ *
  * Individual provider modules (e.g., SlackModule, ZoomModule) will inject
  * this factory during their onModuleInit() and register their specific
  * implementations. This allows the core ingestion pipeline to remain
@@ -32,7 +32,9 @@ export class ProviderClientFactory {
    */
   registerAdapter(providerId: string, adapter: ProviderAdapter) {
     if (this.adapters.has(providerId)) {
-      this.logger.warn(`Overwriting existing ProviderAdapter for ${providerId}`);
+      this.logger.warn(
+        `Overwriting existing ProviderAdapter for ${providerId}`,
+      );
     }
     this.adapters.set(providerId, adapter);
     this.logger.log(`Registered ProviderAdapter for ${providerId}`);
@@ -45,7 +47,9 @@ export class ProviderClientFactory {
   getClient(providerId: string): ProviderClient {
     const client = this.clients.get(providerId);
     if (!client) {
-      throw new Error(`No ProviderClient registered for provider: ${providerId}`);
+      throw new Error(
+        `No ProviderClient registered for provider: ${providerId}`,
+      );
     }
     return client;
   }
@@ -57,7 +61,9 @@ export class ProviderClientFactory {
   getAdapter(providerId: string): ProviderAdapter {
     const adapter = this.adapters.get(providerId);
     if (!adapter) {
-      throw new Error(`No ProviderAdapter registered for provider: ${providerId}`);
+      throw new Error(
+        `No ProviderAdapter registered for provider: ${providerId}`,
+      );
     }
     return adapter;
   }
