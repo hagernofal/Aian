@@ -408,6 +408,7 @@ async function main() {
         memberStatus: 'active',
         invitedByUserId: ownerUser.id,
         joinedAt: new Date(),
+        emailVerifiedAt: new Date()
       },
     });
     createdUsers.push(user);
