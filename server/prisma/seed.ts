@@ -34,8 +34,9 @@ async function main() {
   await prisma.payment.deleteMany();
   await prisma.subscription.deleteMany();
   await prisma.subscriptionPlan.deleteMany();
-  await prisma.user.deleteMany();
   await prisma.organization.deleteMany();
+  await prisma.user.deleteMany();
+ 
 
   await prisma.eyeProvider.deleteMany();
   await prisma.provider.deleteMany();

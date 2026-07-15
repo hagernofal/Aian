@@ -1,6 +1,7 @@
 import { Global, Module } from '@nestjs/common';
 import { ProviderClientFactory } from './provider-client.factory';
 import { SlackModule } from './slack/slack.module';
+import { GithubModule } from './github/github.module';
 
 /**
  * Global Integrations Module.
@@ -11,7 +12,7 @@ import { SlackModule } from './slack/slack.module';
  */
 @Global()
 @Module({
-  imports: [SlackModule],
+  imports: [SlackModule, GithubModule],
   providers: [ProviderClientFactory],
   exports: [ProviderClientFactory],
 })
