@@ -12,11 +12,11 @@ import { NeuralBackdrop } from "@/components/features/landing/NeuralBackdrop";
 import { cn } from "@/lib/utils";
 
 const STEPS = [
+  { path: "/organization", label: "Organization" },
   { path: "/subscription", label: "Plan" },
   { path: "/payment", label: "Payment" },
-  { path: "/organization", label: "Organization" },
   { path: "/providers", label: "Integrations" },
-  { path: "/invite", label: "Members" },
+  { path: "/dashboard/members", label: "Members" },
 ];
 
 export function OnboardingLayout({
@@ -40,7 +40,7 @@ export function OnboardingLayout({
   
   let currentIdx = STEPS.findIndex((s) => s.path === pathname);
   if (pathname === "/payment-result") {
-    currentIdx = 1;
+    currentIdx = 2;
   }
 
   return (

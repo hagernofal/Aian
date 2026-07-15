@@ -61,14 +61,14 @@ function Field({
 }
 
 const inputCls =
-  "h-11 w-full rounded-2xl border border-white/10 bg-white/[0.03] px-4 text-[14px] text-foreground outline-none transition-all placeholder:text-muted-foreground/60 focus:border-[color:var(--gold-soft)]/40 focus:bg-white/[0.05] focus:shadow-[0_0_0_4px_rgba(232,200,106,0.08)]";
+  "h-11 w-full rounded-2xl border border-black/10 dark:border-white/10 bg-black/[0.03] dark:bg-white/[0.03] px-4 text-[14px] text-foreground outline-none transition-all placeholder:text-muted-foreground/60 focus:border-[color:var(--gold-soft)]/40 focus:bg-black/[0.05] dark:focus:bg-white/[0.05] focus:shadow-[0_0_0_4px_rgba(232,200,106,0.08)]";
 
 function Select({
   children,
   ...rest
 }: React.SelectHTMLAttributes<HTMLSelectElement>) {
   return (
-    <select {...rest} className={cn(inputCls, "appearance-none pr-10")}>
+    <select {...rest} className={cn(inputCls, "appearance-none pr-10 [&>option]:bg-white dark:[&>option]:bg-[#0B0D11] [&>option]:text-foreground")}>
       {children}
     </select>
   );
@@ -94,8 +94,8 @@ function Toggle({
       className={cn(
         "flex w-full items-start gap-4 rounded-2xl border p-4 text-left transition-all",
         enabled
-          ? "border-[color:var(--gold-soft)]/40 bg-white/[0.05]"
-          : "border-white/10 bg-white/[0.02] hover:bg-white/[0.04]",
+          ? "border-[color:var(--gold-soft)]/40 bg-black/[0.05] dark:bg-white/[0.05]"
+          : "border-black/10 dark:border-white/10 bg-black/[0.02] dark:bg-white/[0.02] hover:bg-black/[0.04] dark:hover:bg-white/[0.04]",
       )}
     >
       <div
@@ -197,7 +197,7 @@ export default function CreateOrganizationPage() {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string[]>>({});
   const [globalError, setGlobalError] = useState<string | null>(null);
-  const { setOrgId } = useAuthStore();
+  const { setOrgId, user, setUser } = useAuthStore();
 
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [logoFile, setLogoFile] = useState<File | null>(null);
@@ -243,7 +243,7 @@ export default function CreateOrganizationPage() {
   setForm((f) => {
     const next = { ...f, [k]: v };
 
-    // Auto-generate slug when name changes
+   
     if (k === "name") {
       next.slug = slugify(v);
     }
@@ -251,7 +251,7 @@ export default function CreateOrganizationPage() {
     return next;
   });
 
-  // Clear validation error for the edited field
+  
   setErrors((prev) => {
     if (!prev[k] && !(k === "name" && prev.slug)) {
       return prev;
@@ -261,7 +261,7 @@ export default function CreateOrganizationPage() {
 
     delete next[k];
 
-    // If the name changes, the slug changes too
+    
     if (k === "name") {
       delete next.slug;
     }
@@ -269,7 +269,7 @@ export default function CreateOrganizationPage() {
     return next;
   });
 
-  // Clear global error when the user starts correcting input
+  
   setGlobalError(null);
 };
 
@@ -280,8 +280,7 @@ export default function CreateOrganizationPage() {
     setFuture((f) => ({ ...f, [k]: v }));
   };
 
-  // مطلوب: name, slug, description
-  // اختياري: logo (وكل حقول الخطوة 3، 4 مؤقتًا لحد ما الباك إند يدعمها)
+
   const validateStep = (s: number) => {
     if (s === 1)
       return (
@@ -305,12 +304,19 @@ export default function CreateOrganizationPage() {
       const response = await onboardingApi.createOrganization(form);
       if (response.data && response.data.id) {
         setOrgId(response.data.id);
+        if (user) {
+          setUser({
+            ...user,
+            organizationId: response.data.id,
+            organization: form.name,
+          });
+        }
       }
       if (logoFile) {
         await onboardingApi.uploadOrganizationLogo(logoFile);
       }
 
-      router.push("/providers");
+      router.push("/subscription");
     } catch (err: any) {
       const response = err?.response?.data;
       console.log("ERROR:", response);
@@ -638,7 +644,6 @@ export default function CreateOrganizationPage() {
                 <div className="mb-6 flex items-center gap-4">
                   <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-2xl bg-gold-gradient text-[24px] font-bold text-[#17130A]">
                     {logoPreview ? (
-                      // eslint-disable-next-line @next/next/no-img-element
                       <img
                         src={logoPreview}
                         alt="Logo preview"

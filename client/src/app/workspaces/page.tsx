@@ -8,8 +8,9 @@ import { LogOut } from "lucide-react";
 import { AianLogo } from "@/components/ui/Logo";
 import { NeuralBackdrop } from "@/components/features/landing/NeuralBackdrop";
 import { WorkspaceCard } from "@/components/features/workspace/WorkspaceCard"; 
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { CreateWorkspaceCard } from "@/components/features/workspace/CreateWorkspaceCard";
-import { getOwnerDashboard } from "@/api/dashboard"; 
+import { getOwnerDashboard } from "@/api/dashboard";
 
 export default function WorkspacesPage() {
   const [data, setData] = useState<any>(null);
@@ -34,11 +35,15 @@ export default function WorkspacesPage() {
         <NeuralBackdrop density={26} />
       </div>
 
+
       <header className="relative z-20 mx-auto flex w-full max-w-[1200px] items-center justify-between px-6 py-6 md:px-10 md:py-8">
         <AianLogo />
-        <Link href="/login" className="inline-flex items-center gap-2 text-[13px] text-muted-foreground transition-colors hover:text-foreground">
-          <LogOut className="h-4 w-4" /> Sign out
-        </Link>
+        <div className="flex items-center gap-4">
+          <ThemeToggle />
+          <Link href="/login" className="inline-flex items-center gap-2 text-[13px] text-muted-foreground transition-colors hover:text-foreground">
+            <LogOut className="h-4 w-4" /> Sign out
+          </Link>
+        </div>
       </header>
 
       <main className="relative z-10 mx-auto w-full max-w-[1200px] px-6 pb-20 md:px-10">
