@@ -50,6 +50,7 @@ export class WebhookEventDispatcherService {
         rawEventReference: rawEvent.id,
         organizationId,
         connectionId,
+        providerEventType,
       };
 
       // 3. Dispatch to BaseCollectorService
