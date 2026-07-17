@@ -22,7 +22,7 @@ export class ZoomWebhookValidator implements WebhookSignatureValidator {
   ): Promise<boolean> {
     const signature = req.headers['x-zm-signature'] as string;
     const timestamp = req.headers['x-zm-request-timestamp'] as string;
-    //console.log('webhook reached with req:'+ req +' and rawBody:'+ rawBody)
+    console.log('webhook reached with req.body:', req.body)
     if (!signature || !timestamp) {
       this.logger.warn('Missing Zoom validation headers (x-zm-signature or x-zm-request-timestamp)');
       return false;
@@ -43,7 +43,7 @@ export class ZoomWebhookValidator implements WebhookSignatureValidator {
     const expectedSignature = 
       'v0=' + 
       crypto.createHmac('sha256', secret).update(message).digest('hex');
-
+      //console.log('zoom validator worked successfully');
     try {
       return crypto.timingSafeEqual(
         Buffer.from(expectedSignature, 'utf8'),
@@ -70,4 +70,32 @@ export class ZoomWebhookValidator implements WebhookSignatureValidator {
       encryptedToken,
     };
   }
+
+  getEventType(request: Request): string{
+    return request.body?.event;
+  }
+  
 }
+
+
+/*
+  webhook reached with req.body: {
+  event: 'meeting.ended',
+  payload: {
+    account_id: 'Ws9lYbOZT56qC8fzSVx-zg',
+    object: {
+      duration: 0,
+      start_time: '2026-07-17T22:24:18Z',
+      timezone: '',
+      end_time: '2026-07-17T22:25:21Z',
+      topic: "Muhammad Elazzazy's Zoom Meeting",
+      id: '86537167305',
+      type: 1,
+      uuid: '1j34liHNSLib+G/OV+4QHg==',
+      host_id: 'DzQ9MFEBTnWCbA79wfNsww',
+      host_email: 'mohamadelazzazy@gmail.com'
+    }
+  },
+  event_ts: 1784327121469
+}  
+ */

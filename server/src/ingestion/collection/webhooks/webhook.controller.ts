@@ -5,9 +5,11 @@ import {
   Req,
   HttpCode,
   HttpStatus,
+  NotFoundException,
 } from '@nestjs/common';
 import type { RawBodyRequest } from '@nestjs/common';
 import { WebhookService } from './webhook.service';
+import { PrismaService } from '../../../prisma/prisma.service';
 
 /**
  * Controller for receiving provider webhooks.
@@ -15,7 +17,36 @@ import { WebhookService } from './webhook.service';
  */
 @Controller('webhooks')
 export class WebhookController {
-  constructor(private readonly webhookService: WebhookService) {}
+  constructor(
+    private readonly webhookService: WebhookService,
+    private readonly prismaService: PrismaService
+  ) {}
+
+  @Post('zoom')
+  @HttpCode(HttpStatus.OK)
+  async handleZoomWebhook(
+    @Req() req: RawBodyRequest<any>,
+  ) {
+    const zoomProvider= await this.prismaService.provider.findUnique({
+      where:{key:'zoom'}
+    })
+
+    if(!zoomProvider)
+       throw new NotFoundException
+
+    const account_id= req.body.payload.account_id;
+    const providerConnection= await this.prismaService.providerConnection.findFirst({
+      where: {
+        externalAccountId:account_id,
+        providerId:zoomProvider.id
+      }
+      
+    })
+    const connectionId=providerConnection?.id || 'null';
+    //console.log('connectionId:' connectionId)
+    await this.webhookService.processWebhook(connectionId, req as any);
+    return { received: true };
+  }
 
   @Post(':connectionId')
   @HttpCode(HttpStatus.OK)
