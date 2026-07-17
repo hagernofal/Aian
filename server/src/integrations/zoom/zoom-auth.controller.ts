@@ -5,12 +5,14 @@ import {
   Res,
   Logger,
   BadRequestException,
+  Param,
 } from '@nestjs/common';
 import type { Response } from 'express';
 import axios from 'axios';
 import { ProviderConnectionRepository } from '../../ingestion/repositories/provider-connection.repository';
 import { EncryptionService } from '../../common/encryption.service';
 import { PrismaService } from '../../prisma/prisma.service';
+import { ZoomClientService } from './zoom-client.service';
 
 /**
  * Handles the Zoom OAuth 2.0 flow.
@@ -27,6 +29,7 @@ export class ZoomAuthController {
     private readonly connectionRepo: ProviderConnectionRepository,
     private readonly encryptionService: EncryptionService,
     private readonly prisma: PrismaService,
+    private readonly zoomClient: ZoomClientService,
   ) {}
 
   /**
@@ -164,5 +167,37 @@ export class ZoomAuthController {
       );
       throw new BadRequestException('Failed to complete Zoom OAuth flow');
     }
+  }
+
+  /**
+   * use this endpoint to test the Zoom client connection and fetch resources.
+   * Example: GET /integrations/zoom/test-client/:connectionId
+   * Returns the health check result and any resources found.
+   */
+  @Get('test-client/:connectionId')
+  async testClient(@Param('connectionId') connectionId: string) {
+    const connection = await this.connectionRepo.findById(connectionId);
+    if (!connection) {
+      return { error: 'Connection record not found in database' };
+    }
+
+    const mappedConnection = this.connectionRepo.mapToInterface(connection);
+
+    const healthCheck = await this.zoomClient.verifyConnection(mappedConnection as any);
+
+    let resources = []  as any[];
+    if (healthCheck.isValid) {
+      try {
+        resources = await this.zoomClient.getResources(mappedConnection as any);
+      } catch (err: any) {
+        resources = [{ error: `Failed to fetch resources: ${err.message}` }];
+      }
+    }
+
+    return {
+      healthCheck,
+      resourcesFound: resources.length,
+      resources,
+    };
   }
 }
