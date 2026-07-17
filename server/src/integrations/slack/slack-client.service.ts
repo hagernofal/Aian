@@ -5,6 +5,8 @@ import {
   ProviderConnection,
   ConnectionVerificationResult,
   ProviderResource,
+  MessagePayload,
+  MessageSendResult,
 } from '../contracts';
 import { EncryptionService } from '../../common/encryption.service';
 
@@ -158,6 +160,134 @@ export class SlackClientService implements ProviderClient {
       this.logger.error(
         `Failed to reach Slack API for revocation: ${(error as Error).message}`,
       );
+    }
+  }
+
+  /**
+   * Send an outgoing message to a Slack channel or user.
+   * Maps the generic MessagePayload to Slack's chat.postMessage API.
+   *
+   * @param connection - The active ProviderConnection holding the encrypted bot token
+   * @param payload    - The normalized message payload (text, blocks, thread, etc.)
+   */
+  async sendMessage(
+    connection: ProviderConnection,
+    payload: MessagePayload,
+  ): Promise<MessageSendResult> {
+    const token = this.encryptionService.decrypt(connection.accessTokenEncrypted);
+
+    const body: Record<string, unknown> = {
+      channel: payload.targetId,
+      text: payload.text,
+      mrkdwn: true,
+    };
+
+    if (payload.blocks && payload.blocks.length > 0) {
+      body.blocks = payload.blocks;
+    }
+
+    if (payload.threadId) {
+      body.thread_ts = payload.threadId;
+      if (payload.broadcastReply) {
+        body.reply_broadcast = true;
+      }
+    }
+
+    try {
+      const response = await axios.post(
+        'https://slack.com/api/chat.postMessage',
+        body,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        },
+      );
+
+      if (response.data.ok) {
+        this.logger.log(
+          `Message sent to channel ${payload.targetId}, ts=${response.data.ts}`,
+        );
+        return {
+          success: true,
+          messageId: response.data.ts,
+          channelId: response.data.channel,
+        };
+      }
+
+      this.logger.warn(`Slack chat.postMessage failed: ${response.data.error}`);
+      return {
+        success: false,
+        error: response.data.error,
+      };
+    } catch (error) {
+      this.logger.error(
+        `Failed to reach Slack API for sendMessage: ${(error as Error).message}`,
+      );
+      return {
+        success: false,
+        error: (error as Error).message,
+      };
+    }
+  }
+  /**
+   * Automatically join channels that were selected by the user,
+   * and send a welcome message so they know Aian is active.
+   */
+  async onResourcesSelected(
+    connection: ProviderConnection,
+    resources: any[],
+  ): Promise<void> {
+    const token = this.encryptionService.decrypt(
+      connection.accessTokenEncrypted,
+    );
+
+    for (const resource of resources) {
+      if (resource.resourceType !== 'channel') continue;
+
+      try {
+        // 1. Join the channel
+        const joinResponse = await axios.post(
+          'https://slack.com/api/conversations.join',
+          { channel: resource.externalResourceId },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+          },
+        );
+
+        if (!joinResponse.data.ok) {
+          if (joinResponse.data.error === 'already_in_channel') {
+            this.logger.debug(
+              `Already in channel ${resource.name} (${resource.externalResourceId})`,
+            );
+          } else {
+            this.logger.warn(
+              `Failed to join channel ${resource.externalResourceId}: ${joinResponse.data.error}`,
+            );
+            continue; // Skip sending message if join failed
+          }
+        } else {
+          this.logger.log(
+            `Successfully joined channel ${resource.name} (${resource.externalResourceId})`,
+          );
+        }
+
+        // 2. Send welcome message
+        await this.sendMessage(connection, {
+          targetId: resource.externalResourceId,
+          text: "Hi everyone! I'm Aian. I'm here to help answer questions and assist with anything you need!",
+        });
+      } catch (error) {
+        this.logger.error(
+          `Error joining/welcoming in channel ${resource.externalResourceId}: ${
+            (error as Error).message
+          }`,
+        );
+      }
     }
   }
 }

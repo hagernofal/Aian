@@ -4,6 +4,7 @@ import {
   RefreshedCredentials,
 } from './provider-connection.interface';
 import { ProviderResource } from './provider-resource.interface';
+import { MessagePayload, MessageSendResult } from './message-payload.interface';
 
 /**
  * Provider Client Contract.
@@ -44,4 +45,23 @@ export interface ProviderClient {
    * Called when the user disconnects the provider.
    */
   revokeCredentials?(connection: ProviderConnection): Promise<void>;
+
+  /**
+   * Send an outgoing message through the provider.
+   * Optional — only providers that support messaging implement this.
+   * Takes a generic MessagePayload and maps it to the provider's API.
+   */
+  sendMessage?(
+    connection: ProviderConnection,
+    payload: MessagePayload,
+  ): Promise<MessageSendResult>;
+
+  /**
+   * Hook executed when the user saves their selected resources for this connection.
+   * Optional — providers can use this to join channels, set up webhooks, or send welcome messages.
+   */
+  onResourcesSelected?(
+    connection: ProviderConnection,
+    resources: any[], // Type loosely to avoid circular dependency for now, we'll map it to the selection payload
+  ): Promise<void>;
 }
