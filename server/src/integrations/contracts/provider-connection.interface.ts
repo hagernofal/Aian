@@ -43,6 +43,15 @@ export interface ProviderConnection {
 
   /** Provider-specific connection metadata (e.g., Jira site ID, GitHub installation ID). */
   connectionMetadata: Record<string, unknown>;
+  
+  /** Current connection status. */
+  status?: string;
+
+  /** Last successful synchronization time. */
+  lastSyncAt?: Date | null;
+
+  /** Last successful verification time. */
+  lastVerifiedAt?: Date | null;
 }
 
 /**

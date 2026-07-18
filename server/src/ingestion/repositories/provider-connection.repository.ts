@@ -8,7 +8,7 @@ import { Prisma } from '@prisma/client';
  */
 @Injectable()
 export class ProviderConnectionRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   async findById(id: string) {
     return this.prisma.providerConnection.findUnique({ where: { id } });
@@ -17,7 +17,7 @@ export class ProviderConnectionRepository {
   async findByIdMapped(id: string) {
     const conn = await this.prisma.providerConnection.findUnique({
       where: { id },
-      include: { 
+      include: {
         organizationEye: { include: { eyeType: true } },
         provider: true
       },
@@ -43,7 +43,7 @@ export class ProviderConnectionRepository {
   ) {
     const conn = await this.prisma.providerConnection.findFirst({
       where: { externalAccountId, providerId },
-      include: { 
+      include: {
         organizationEye: { include: { eyeType: true } },
         provider: true
       },
@@ -55,7 +55,7 @@ export class ProviderConnectionRepository {
   async findByOrganizationId(organizationId: string) {
     return this.prisma.providerConnection.findMany({
       where: { organizationEye: { organizationId } },
-      include: { 
+      include: {
         organizationEye: { include: { eyeType: true } },
         provider: true
       },
@@ -71,6 +71,9 @@ export class ProviderConnectionRepository {
       provider: conn.providerId as any, // Keep for backward compatibility
       providerKey: conn.provider?.key || '',
       eyeType: conn.organizationEye?.eyeType?.key || '',
+      status: conn.status,
+      lastSyncAt: conn.lastSyncAt,
+      lastVerifiedAt: conn.lastVerifiedAt,
       accessTokenEncrypted: conn.accessTokenEncrypted,
       refreshTokenEncrypted: conn.refreshTokenEncrypted,
       tokenExpiresAt: conn.tokenExpiresAt,
@@ -130,6 +133,14 @@ export class ProviderConnectionRepository {
     });
   }
 
+  async findByExternalAccountId(externalAccountId: string) {
+    const conn = await this.prisma.providerConnection.findFirst({
+      where: { externalAccountId },
+      include: { organizationEye: true },
+    });
+    if (!conn) return null;
+    return this.mapToInterface(conn);
+  }
   async updateConnectionMetadata(id: string, metadata: Record<string, unknown>) {
     return this.prisma.providerConnection.update({
       where: { id },
