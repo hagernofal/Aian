@@ -2,6 +2,15 @@ import api from '../axios';
 
 export type ProviderKey = 'jira' | 'github' | 'slack' | 'zoom';
 
+// eyeType values must match backend EyeType enum keys (lowercase, per DB seed)
+export type EyeType = 'chat' | 'meeting' | 'task' | 'coding';
+
+const PROVIDER_TO_EYE_TYPE: Record<ProviderKey, EyeType> = {
+  slack: 'chat',
+  zoom: 'meeting',
+  jira: 'task',
+  github: 'coding',
+};
 /**
   API Mapping
  * If the backend team builds entirely separate controllers for each Eye 
@@ -51,6 +60,57 @@ export const saveSelectedResources = async (provider: ProviderKey, selectedIds: 
   const response = await api.post(`${getBaseUrl(provider)}/resources`, { selectedIds });
   return response.data;
 };
+
+// GitHub App Installation Flow
+// GitHub uses a different connection model than classic OAuth:
+// the browser is redirected to GitHub directly (no JSON "connect URL"
+// to fetch first), and the backend callback finalizes the connection
+// server-side, then redirects back to /eyes/github/success itself.
+// ─────────────────────────────────────────────────────────────
+
+/**
+ * Builds the full backend URL that starts the GitHub App installation.
+ * This is NOT an axios call — the Connect page must navigate the full
+ * browser to this URL (window.location.href), not fetch it as JSON,
+ * because the backend's /install route responds with an HTTP redirect
+ * straight to GitHub's installation page.
+ */
+export const getGithubInstallUrl = (organizationEyeId: string): string => {
+  const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:1234/api/v1';
+  return `${apiBaseUrl}/integrations/github/install?organizationEyeId=${organizationEyeId}`;
+};
+
+/**
+ * 3. Resources Page (/eyes/[provider]/resources)
+ * Fetches the available resources (repos, channels, projects) from the provider.
+ *
+ * Matches the real Sprint 2 contract:
+ * GET /organizations/:organizationId/eyes/:eyeType/resources
+ */
+export const getAvailableResource = async (
+  organizationId: string,
+  provider: ProviderKey,
+) => {
+  const eyeType = PROVIDER_TO_EYE_TYPE[provider];
+  const response = await api.get(
+    `/organizations/${organizationId}/eyes/${eyeType}/resources`,
+  );
+  return response.data;
+};
+
+export const saveSelectedResource = async (
+  organizationId: string,
+  provider: ProviderKey,
+  selectedIds: string[],
+) => {
+  const eyeType = PROVIDER_TO_EYE_TYPE[provider];
+  const response = await api.put(
+    `/organizations/${organizationId}/eyes/${eyeType}/resources`,
+    { selectedIds },
+  );
+  return response.data;
+};
+
 
 /**
  * 4. Sync Config Page (/eyes/[provider]/sync-config)
