@@ -22,7 +22,7 @@ export class ZoomWebhookValidator implements WebhookSignatureValidator {
   ): Promise<boolean> {
     const signature = req.headers['x-zm-signature'] as string;
     const timestamp = req.headers['x-zm-request-timestamp'] as string;
-    console.log('webhook reached with req.body:', req.body)
+    //console.log('webhook reached with req.body:', req.body)
     if (!signature || !timestamp) {
       this.logger.warn('Missing Zoom validation headers (x-zm-signature or x-zm-request-timestamp)');
       return false;

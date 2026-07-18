@@ -75,4 +75,57 @@ export class ZoomClientService implements ProviderClient {
       throw new Error(`Failed to fetch Zoom resources: ${errorMsg}`);
     }
   }
+
+  /**
+   * Revoke the Zoom OAuth access token.
+   * Hits the Zoom API OAuth revoke endpoint.
+   */
+  async revokeCredentials(connection: ProviderConnection): Promise<void> {
+    const token = this.encryptionService.decrypt(
+      connection.accessTokenEncrypted,
+    );
+
+    const clientId = process.env.ZOOM_CLIENT_ID;
+    const clientSecret = process.env.ZOOM_CLIENT_SECRET;
+
+    if (!clientId || !clientSecret) {
+      this.logger.error(
+        'Zoom client ID or client secret is missing from environment variables.',
+      );
+      return;
+    }
+
+    try {
+      const authHeader = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
+
+      const params = new URLSearchParams();
+      params.append('token', token);
+
+      const response = await axios.post(
+        'https://zoom.us/oauth/revoke',
+        params,
+        {
+          headers: {
+            Authorization: `Basic ${authHeader}`,
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+        },
+      );
+      if (response.status === 200 && response.data?.status === 'success') {
+        this.logger.log(
+          `Zoom token revoked successfully for connection ${connection.id}`,
+        );
+      } else {
+        this.logger.warn(
+          `Zoom token revocation returned unexpected response: ${JSON.stringify(response.data)}`,
+        );
+      }
+    } catch (error: any) {
+      const errorMsg = error.response?.data?.message || error.message;
+      this.logger.error(
+        `Failed to reach Zoom API for token revocation: ${errorMsg}`,
+      );
+
+    }
+  }
 }

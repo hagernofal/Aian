@@ -116,7 +116,7 @@ export class ZoomAuthController {
           },
         },
       );
-      console.log(tokenResponse);
+      //console.log(tokenResponse);
       const data = tokenResponse.data;
 
       const tokenExpiresAt = new Date();

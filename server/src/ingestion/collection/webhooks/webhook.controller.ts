@@ -43,7 +43,7 @@ export class WebhookController {
       
     })
     const connectionId=providerConnection?.id || 'null';
-    //console.log('connectionId:' connectionId)
+    console.log('connectionId:', connectionId)
     await this.webhookService.processWebhook(connectionId, req as any);
     return { received: true };
   }
