@@ -59,6 +59,7 @@ export class GithubAuthController {
     @Query('state') organizationEyeId: string,
     @Res() res: Response,
   ) {
+    const frontendUrl =this.configService.get<string>('FRONTEND_URL') ?? 'http://localhost:3000';
     if (!installationId || !organizationEyeId) {
       throw new BadRequestException('Missing installation_id or state');
     }
@@ -66,7 +67,8 @@ export class GithubAuthController {
     if (setupAction === 'delete' || setupAction === 'uninstall') {
       // Owner uninstalled the app — out of scope for this step,
       // will be handled in the disconnect flow.
-      return res.send('GitHub App was uninstalled.');
+      // return res.send('GitHub App was uninstalled.');
+      return res.redirect(`${frontendUrl}/eyes/github/connect?status=uninstalled`);
     }
 
     // 3. Look up the actual Provider row to get its real UUID.
@@ -76,9 +78,10 @@ export class GithubAuthController {
     });
 
     if (!githubProvider) {
-      throw new InternalServerErrorException(
-        'PROVIDER_CONNECTION_FAILED: GitHub provider not found in database (seed missing?)',
-      );
+      // throw new InternalServerErrorException(
+      //   'PROVIDER_CONNECTION_FAILED: GitHub provider not found in database (seed missing?)',
+      // );
+       return res.redirect(`${frontendUrl}/eyes/github/connect?error=provider_not_found`,);
     }
 
     // 4. Generate a short-lived App JWT signed with our private key.
@@ -103,12 +106,16 @@ export class GithubAuthController {
       installationToken = response.data.token;
       tokenExpiresAt = new Date(response.data.expires_at);
     } catch (error) {
-      throw new InternalServerErrorException(
-        'PROVIDER_CONNECTION_FAILED: could not exchange installation_id for access token',
+      // throw new InternalServerErrorException(
+      //   'PROVIDER_CONNECTION_FAILED: could not exchange installation_id for access token',
+      // );
+      return res.redirect(
+      `${frontendUrl}/eyes/github/connect?error=token_exchange_failed`,
       );
     }
 
     // 6. Encrypt and save the connection using the shared repository.
+    try {
     const existingConnection = await this.connectionRepo.findByOrganizationEyeId(organizationEyeId);
     if (existingConnection) {
       await this.connectionRepo.update(existingConnection.id, {
@@ -133,8 +140,13 @@ export class GithubAuthController {
         connectedAt: new Date(),
       } as any);
     }
-      res.send('GitHub App connected successfully. You can close this window.');
-      return;
+    } catch (error) {
+    return res.redirect(
+      `${frontendUrl}/eyes/github/connect?error=save_connection_failed`,
+    );
+    }
+    
+      return res.redirect(`${frontendUrl}/eyes/github/success?organizationEyeId=${organizationEyeId}`,);
       // return res.send('GitHub App connected successfully. You can close this window.');
     }
 
