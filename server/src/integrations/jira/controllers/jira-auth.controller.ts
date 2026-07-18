@@ -26,12 +26,19 @@ export class JiraAuthController {
   ) {}
 
   @Get('install')
-  install(
+  async install(
     @Query('organizationEyeId') organizationEyeId: string,
-    @Res() res: Response,
   ) {
     if (!organizationEyeId) {
       throw new BadRequestException('organizationEyeId is required');
+    }
+
+    const organizationeye = await this.prisma.organizationEye.findUnique({
+      where: { id: organizationEyeId },
+    });
+
+    if (!organizationeye) {
+      throw new BadRequestException('Organization eye not found');
     }
 
     const clientId = this.configService.get<string>('JIRA_CLIENT_ID');
@@ -61,7 +68,9 @@ export class JiraAuthController {
     url.searchParams.append('response_type', 'code');
     url.searchParams.append('prompt', 'consent');
 
-    return res.redirect(url.toString());
+    return {
+      url: url.toString(),
+    };
   }
 
   @Get('callback')
@@ -129,6 +138,38 @@ export class JiraAuthController {
         );
       }
 
+      // Fetch accessible resources to get site info
+      const resourcesResponse = await axios.get<{
+        id: string;
+        url: string;
+        name: string;
+        scopes: string[];
+        avatarUrl: string;
+      }[]>('https://api.atlassian.com/oauth/token/accessible-resources', {
+        headers: {
+          Authorization: `Bearer ${access_token}`,
+        },
+      });
+
+      if (!resourcesResponse.data || resourcesResponse.data.length === 0) {
+        throw new InternalServerErrorException(
+          'No accessible resources found for this Jira connection',
+        );
+      }
+
+      const primaryResource = resourcesResponse.data[0];
+      const externalAccountId = primaryResource.id;
+      const externalAccountName = primaryResource.name;
+      const connectionMetadata = {
+        url: primaryResource.url,
+        avatarUrl: primaryResource.avatarUrl,
+        allResources: resourcesResponse.data.map((r) => ({
+          id: r.id,
+          name: r.name,
+          url: r.url,
+        })),
+      };
+
       // Encrypt tokens
       const encryptedAccessToken = this.encryptionService.encrypt(access_token);
       const encryptedRefreshToken = refresh_token
@@ -160,6 +201,9 @@ export class JiraAuthController {
 
       if (existingConn) {
         await this.providerConnectionRepo.update(existingConn.id, {
+          externalAccountId,
+          externalAccountName,
+          connectionMetadata,
           accessTokenEncrypted: encryptedAccessToken,
           refreshTokenEncrypted: encryptedRefreshToken,
           tokenExpiresAt,
@@ -170,6 +214,9 @@ export class JiraAuthController {
         await this.providerConnectionRepo.create({
           organizationEyeId,
           providerId: provider.id,
+          externalAccountId,
+          externalAccountName,
+          connectionMetadata,
           accessTokenEncrypted: encryptedAccessToken,
           refreshTokenEncrypted: encryptedRefreshToken,
           tokenExpiresAt,
@@ -179,8 +226,14 @@ export class JiraAuthController {
         });
       }
 
+      // Update the OrganizationEye status to 'connected'
+      await this.prisma.organizationEye.update({
+        where: { id: organizationEyeId },
+        data: { status: 'connected' },
+      });
+
       return res.redirect(
-        `${frontendUrl}/integrations/success?provider=jira&success=true`,
+        `${frontendUrl}/eyes/jira/redirect`,
       );
     } catch (error: unknown) {
       if (axios.isAxiosError(error)) {
@@ -194,7 +247,7 @@ export class JiraAuthController {
         this.logger.error('Jira OAuth callback failed', 'Unknown error');
       }
       return res.redirect(
-        `${frontendUrl}/integrations/error?provider=jira&error=oauth_failed`,
+        `${frontendUrl}/eyes/jira/error?provider=jira&error=oauth_failed`,
       );
     }
   }
