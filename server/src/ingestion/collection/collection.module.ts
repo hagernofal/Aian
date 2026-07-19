@@ -3,6 +3,9 @@ import { WebhookController } from './webhooks/webhook.controller';
 import { WebhookService } from './webhooks/webhook.service';
 import { WebhookEventDispatcherService } from './webhooks/webhook-event-dispatcher.service';
 import { BaseCollectorService } from './base-collector.service';
+import { GithubWebhookController} from './webhooks/github-webhook.controller';
+import { IntegrationsModule } from '../../integrations/integrations.module';
+import { HistoricalSyncService } from './historical-sync.service';
 
 /**
  * Collection Module.
@@ -11,12 +14,14 @@ import { BaseCollectorService } from './base-collector.service';
  */
 @Global()
 @Module({
-  controllers: [WebhookController],
+  imports: [IntegrationsModule], // We need ProviderClientFactory from this
+  controllers: [WebhookController,GithubWebhookController,],
   providers: [
     WebhookEventDispatcherService,
     WebhookService,
     BaseCollectorService,
+    HistoricalSyncService,
   ],
-  exports: [BaseCollectorService, WebhookService],
+  exports: [BaseCollectorService, WebhookService, HistoricalSyncService],
 })
 export class CollectionModule {}
