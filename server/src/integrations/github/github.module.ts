@@ -9,6 +9,7 @@ import { WebhookSignatureValidatorFactory } from '../../ingestion/collection/web
 import { PrismaService } from '../../prisma/prisma.service';
 import { ProviderKeyDbMap } from './github-connection.constants';
 import { ConfigModule } from '@nestjs/config/dist/config.module';
+import { CollectionModule } from '../../ingestion/collection/collection.module';
 
 /**
  * The GitHub Integration Module.

@@ -1,5 +1,6 @@
 import { Module, OnModuleInit } from '@nestjs/common';
 import { JiraAuthController } from './controllers/jira-auth.controller';
+import { JiraEventsController } from './controllers/jira-events.controller';
 import { JiraClientService } from './services/jira-client.service';
 import { JiraAdapterService } from './services/jira-adapter.service';
 import { JiraWebhookValidator } from './validators/jira-webhook.validator';

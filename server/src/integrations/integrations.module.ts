@@ -3,6 +3,7 @@ import { ProviderClientFactory } from './provider-client.factory';
 import { SlackModule } from './slack/slack.module';
 import { GithubModule } from './github/github.module';
 import { JiraModule } from './jira/jira.module';
+import { ZoomModule } from './zoom/zoom.module';
 
 /**
  * Global Integrations Module.
@@ -13,7 +14,7 @@ import { JiraModule } from './jira/jira.module';
  */
 @Global()
 @Module({
-  imports: [SlackModule, GithubModule, JiraModule],
+  imports: [SlackModule, GithubModule, JiraModule, ZoomModule],
   providers: [ProviderClientFactory],
   exports: [ProviderClientFactory],
 })

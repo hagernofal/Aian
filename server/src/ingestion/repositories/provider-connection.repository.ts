@@ -8,7 +8,7 @@ import { Prisma } from '@prisma/client';
  */
 @Injectable()
 export class ProviderConnectionRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   async findById(id: string) {
     return this.prisma.providerConnection.findUnique({ where: { id } });
@@ -71,6 +71,9 @@ export class ProviderConnectionRepository {
       provider: conn.providerId, // Keep for backward compatibility
       providerKey: conn.provider?.key || '',
       eyeType: conn.organizationEye?.eyeType?.key || '',
+      status: conn.status,
+      lastSyncAt: conn.lastSyncAt,
+      lastVerifiedAt: conn.lastVerifiedAt,
       accessTokenEncrypted: conn.accessTokenEncrypted,
       refreshTokenEncrypted: conn.refreshTokenEncrypted,
       tokenExpiresAt: conn.tokenExpiresAt,
@@ -130,10 +133,15 @@ export class ProviderConnectionRepository {
     });
   }
 
-  async updateConnectionMetadata(
-    id: string,
-    metadata: Record<string, unknown>,
-  ) {
+  async findByExternalAccountId(externalAccountId: string) {
+    const conn = await this.prisma.providerConnection.findFirst({
+      where: { externalAccountId },
+      include: { organizationEye: true },
+    });
+    if (!conn) return null;
+    return this.mapToInterface(conn);
+  }
+  async updateConnectionMetadata(id: string, metadata: Record<string, unknown>) {
     return this.prisma.providerConnection.update({
       where: { id },
       data: { connectionMetadata: metadata as any },

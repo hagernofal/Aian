@@ -13,7 +13,7 @@ export class HealthController {
   constructor(
     private readonly connectionRepo: ProviderConnectionRepository,
     private readonly providerFactory: ProviderClientFactory,
-  ) {}
+  ) { }
 
   @Get()
   async checkConnectionHealth(@Param('connectionId') connectionId: string) {
@@ -26,10 +26,30 @@ export class HealthController {
         `No client implemented for ${connection.provider}`,
       );
 
-    const result = await client.verifyConnection(connection);
+    // const result = await client.verifyConnection(connection);
 
     // Optionally update connection status in DB based on result
 
-    return result;
+    // return result;
+    const verification = await client.verifyConnection(connection);
+    return {
+      status: connection.status,
+
+      isValid: verification.isValid,
+
+      message: verification.message,
+
+      lastSyncAt: connection.lastSyncAt,
+
+      lastVerifiedAt: connection.lastVerifiedAt,
+
+      connection: {
+        provider: connection.providerKey,
+        accountId: connection.externalAccountId,
+        accountName: connection.externalAccountName,
+      },
+    };
+
+
   }
 }

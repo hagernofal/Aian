@@ -28,8 +28,8 @@ export class GithubAuthController {
     private readonly prisma: PrismaService,
     private readonly connectionRepo: ProviderConnectionRepository,
     private readonly encryptionService: EncryptionService,
-    private readonly githubClient: GithubClientService,
-  ) {}
+    private readonly githubClient: GithubClientService
+  ) { }
 
   /**
    * Step 1: Redirect the owner to GitHub's App installation page.
@@ -113,21 +113,34 @@ export class GithubAuthController {
     }
 
     // 6. Encrypt and save the connection using the shared repository.
-    await this.connectionRepo.create({
-      organizationEyeId,
-      providerId: githubProvider.id, // real UUID now, not the enum string
-      status: 'connected',
-      externalAccountId: installationId,
-      accessTokenEncrypted: this.encryptionService.encrypt(installationToken),
-      tokenExpiresAt,
-      scopes: ['contents:read', 'issues:read', 'pull_requests:read'],
-      connectedAt: new Date(),
-    } as any);
-
-    return res.send(
-      'GitHub App connected successfully. You can close this window.',
-    );
-  }
+    const existingConnection = await this.connectionRepo.findByOrganizationEyeId(organizationEyeId);
+    if (existingConnection) {
+      await this.connectionRepo.update(existingConnection.id, {
+        status: 'connected',
+        externalAccountId: installationId,
+        accessTokenEncrypted:
+          this.encryptionService.encrypt(installationToken),
+        tokenExpiresAt,
+        scopes: ['contents:read', 'issues:read', 'pull_requests:read'],
+        connectedAt: new Date(),
+        lastErrorMessage: null,
+      });
+    } else {
+      await this.connectionRepo.create({
+        organizationEyeId,
+        providerId: githubProvider.id, // real UUID now, not the enum string
+        status: 'connected',
+        externalAccountId: installationId,
+        accessTokenEncrypted: this.encryptionService.encrypt(installationToken),
+        tokenExpiresAt,
+        scopes: ['contents:read', 'issues:read', 'pull_requests:read'],
+        connectedAt: new Date(),
+      } as any);
+    }
+      res.send('GitHub App connected successfully. You can close this window.');
+      return;
+      // return res.send('GitHub App connected successfully. You can close this window.');
+    }
 
   /**
    * Signs a JWT using the GitHub App's private key.
