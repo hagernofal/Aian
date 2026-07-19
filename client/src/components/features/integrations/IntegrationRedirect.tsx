@@ -19,8 +19,14 @@ export function IntegrationRedirect({ providerKey }: { providerKey: string }) {
   const provider = getProvider(providerKey);
   const router = useRouter();
   const [stage, setStage] = useState(0);
+  useEffect(() => {
+    if (providerKey === "github") {
+      router.replace(`/eyes/github/connect`);
+    }
+  }, [providerKey, router]);
 
   useEffect(() => {
+    if (providerKey === "github") return; 
     if (stage >= STAGES.length) {
       const t = setTimeout(
         () => router.push(`/eyes/${providerKey}/success`),
@@ -31,6 +37,9 @@ export function IntegrationRedirect({ providerKey }: { providerKey: string }) {
     const t = setTimeout(() => setStage((s) => s + 1), 900 + Math.random() * 500);
     return () => clearTimeout(t);
   }, [stage, providerKey, router]);
+  if (providerKey === "github") {
+    return null; // brief flash before redirect effect fires
+  }
 
   return (
     <div className="w-full">
