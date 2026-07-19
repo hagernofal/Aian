@@ -1,14 +1,17 @@
 import { Module, OnModuleInit } from '@nestjs/common';
 import { JiraAuthController } from './controllers/jira-auth.controller';
+import { JiraEventsController } from './controllers/jira-events.controller';
 import { JiraClientService } from './services/jira-client.service';
 import { JiraAdapterService } from './services/jira-adapter.service';
 import { JiraWebhookValidator } from './validators/jira-webhook.validator';
 import { ProviderClientFactory } from '../provider-client.factory';
 import { WebhookSignatureValidatorFactory } from '../../ingestion/collection/webhooks/webhook-signature-validator.factory';
 import { Provider } from '../contracts';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
-  controllers: [JiraAuthController],
+  imports: [ConfigModule],
+  controllers: [JiraAuthController, JiraEventsController],
   providers: [JiraClientService, JiraAdapterService, JiraWebhookValidator],
   exports: [JiraClientService, JiraAdapterService, JiraWebhookValidator],
 })
