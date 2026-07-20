@@ -6,8 +6,9 @@ import { BatchesController } from './controllers/batches.controller';
 import { MessagesController } from './controllers/messages.controller';
 import { SettingsController } from './controllers/settings.controller';
 import { HistoricalSyncController } from './controllers/historical-sync.controller';
-import { MessagesService } from '../../integrations/messages/messages.service';
+import { KnowledgeController } from './controllers/knowledge.controller';
 import { IntegrationsModule } from '../../integrations/integrations.module';
+import { MessagesService } from '../../integrations/messages/messages.service';
 
 @Module({
   imports: [IntegrationsModule], // Needs access to ProviderClientFactory
@@ -20,6 +21,7 @@ import { IntegrationsModule } from '../../integrations/integrations.module';
     MessagesController,
     SettingsController,
     HistoricalSyncController,
+    KnowledgeController,
   ],
 })
-export class IngestionApiModule {}
+export class IngestionApiModule { }
