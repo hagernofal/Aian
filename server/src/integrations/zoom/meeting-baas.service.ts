@@ -153,11 +153,11 @@ export class MeetingBaasService {
         data: {
             connectionMetadata: {
             ...(currentConnection?.connectionMetadata as object ?? {}),
-            bot_id: response.data.bot_id,
+            bot_id: response.data.data.bot_id,
             },
         },
         });
-
+        console.log(response.data)
       return response.data;
     } catch (error: any) {
       const errorMsg = error.response?.data?.message || error.message;
